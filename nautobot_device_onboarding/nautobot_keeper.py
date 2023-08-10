@@ -375,9 +375,9 @@ class NautobotKeeper:  # pylint: disable=too-many-instance-attributes
                     "device_type": self.nb_device_type,
                     "device_role": self.nb_device_role,
                     "platform": self.nb_platform,
-                    "site": self.nb_location,
+                    "site": self.nb_site,
                     "serial": self.netdev_serial_number,
-                    # "status":  field is not updated in case of already existing devices to prevent changes
+                    # status= field is not updated in case of already existing devices to prevent changes
                 },
             }
         else:
@@ -400,9 +400,9 @@ class NautobotKeeper:  # pylint: disable=too-many-instance-attributes
                 "name": self.netdev_hostname,
                 "defaults": {
                     "device_type": self.nb_device_type,
-                    "role": self.nb_device_role,
+                    "device_role": self.nb_device_role,
                     "platform": self.nb_platform,
-                    "location": self.nb_location,
+                    "site": self.nb_site,
                     "serial": self.netdev_serial_number,
                     # `status` field is defined only for new devices, no update for existing should occur
                     "status": device_status,
@@ -429,9 +429,7 @@ class NautobotKeeper:  # pylint: disable=too-many-instance-attributes
         if self.netdev_mgmt_ifname:
             # TODO: Add option for default interface status
             self.nb_mgmt_ifname, _ = Interface.objects.get_or_create(
-                name=self.netdev_mgmt_ifname,
-                device=self.device,
-                defaults={"type": InterfaceTypeChoices.TYPE_OTHER, "status": Status.objects.get(name="Active")},
+                name=self.netdev_mgmt_ifname, device=self.device, defaults={"type": InterfaceTypeChoices.TYPE_OTHER}
             )
 
             ensure_default_cf(obj=self.nb_mgmt_ifname, model=Interface)
