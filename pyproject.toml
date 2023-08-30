@@ -39,6 +39,9 @@ Markdown = "*"
 setuptools = "*"
 toml = "*"
 
+[tool.poetry.group.dev.dependencies]
+pylint-nautobot = "^0.2.0"
+
 [tool.black]
 line-length = 120
 target-version = ['py37']
