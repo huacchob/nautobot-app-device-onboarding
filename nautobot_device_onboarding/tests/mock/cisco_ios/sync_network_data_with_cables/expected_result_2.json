@@ -197,7 +197,7 @@
         }
     },
     "serial": "FOC1541W2SP",
-    "neighbors": [
+    "cables": [
             {
                 "remote_device": "demo-cisco-1",
                 "local_interface": "GigabitEthernet1",
