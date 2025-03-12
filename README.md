@@ -19,15 +19,15 @@ Regardless, the Onboarding App greatly simplifies the onboarding process by allo
 
 ### Support Matrix (Sync Devices From Network)
 
-|     Data Attribute      | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  | HP Comware | Palo Alto Panos |
-| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: | :-: | :-: |
-| Hostname                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
-| Platform                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
-| Manufacturer            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
-| Serial Number           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
-| Device Type             | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
-| Mgmt Interface          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
-| Mgmt IP Address         | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 |
+|     Data Attribute      | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  | HP Comware | Palo Alto Panos | Aruba AOSCX |
+| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: | :-: | :-: | :-: |
+| Hostname                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+| Platform                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+| Manufacturer            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+| Serial Number           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+| Device Type             | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+| Mgmt Interface          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+| Mgmt IP Address         | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
 
 ### Support Matrix (Sync Data From Network)
 
