@@ -19,6 +19,8 @@ class NautobotDeviceOnboardingConfig(NautobotAppConfig):
                    collecting and populating common device 'facts' into Nautobot."
     base_url = "nautobot-device-onboarding"
     required_settings = []
+    min_version = "3.0.0a1"  # TODO: Update to 3.0.0 when Nautobot v3.0.0 is released
+    max_version = "3.9999"
     default_settings = {
         "create_platform_if_missing": True,
         "create_manufacturer_if_missing": True,
