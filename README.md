@@ -19,41 +19,43 @@ Regardless, the Onboarding App greatly simplifies the onboarding process by allo
 
 ### Support Matrix (Sync Devices From Network)
 
-|     Data Attribute      | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  | HP Comware | Palo Alto Panos | Aruba AOSCX |
-| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: | :-: | :-: | :-: |
-| Hostname                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
-| Platform                | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
-| Manufacturer            | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
-| Serial Number           | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
-| Device Type             | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
-| Mgmt Interface          | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
-| Mgmt IP Address         | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | 🧪 | 🧪 | 🧪 |
+
+|     Data Attribute      | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco XR | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  | HP Comware | Palo Alto Panos | Aruba AOSCX |
+| ----------------------  | :-: | :-: |  :-:  |  :-:  |  :-:  |  :-:  | :-: | :-: | :-: | :-: | :-: |
+| Hostname                | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+| Platform                | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+| Manufacturer            | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+| Serial Number           | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+| Device Type             | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+| Mgmt Interface          | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+| Mgmt IP Address         | ✅ | ✅ | ✅ | 🧪 | ✅ | ✅ | ✅ | 🧪 | 🧪 | 🧪 | 🧪 |
+
 
 ### Support Matrix (Sync Data From Network)
 
-|     Interfaces          | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  |
-| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: |
-| Name           | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| IP Address     | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Type           | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| MTU            | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Description    | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Mac Address    | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Link Status    | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| 802.1Q mode    | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Lag Member     | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Vrf Membership | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Software Version | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
+|     Interfaces          | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco XR | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  |
+| ----------------------- | :----------------: |  :--------------:  |  :--------------:  | :-: | :--------------:  |  :--------------:  |  :--------------:  | :-: |
+| Name           | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| IP Address     | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Type           | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| MTU            | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Description    | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Mac Address    | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Link Status    | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| 802.1Q mode    | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Lag Member     | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Vrf Membership | ✅ | ✅ | ✅ | 🧪 | ❌ | ✅ | ✅ | ❌ |
+| Software Version | ✅ | ✅ | ✅  | 🧪 | ❌ | ✅ | ✅ | ❌ |
 
-|     VLANS          | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  |
-| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: |
-| Untagged VLANs       | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
-| Tagged VLANs        | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ❌ |
+|     VLANS          | Cisco IOS          | Cisco XE           | Cisco XR           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  |
+| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: |
+| Untagged VLANs       | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ |
+| Tagged VLANs        | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ | ❌ |
 
-|     Cabling          | Cisco IOS          | Cisco XE           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  |
-| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: |
-|  Terminations A      | 🧪 | 🧪 | 🧪 | ❌ | 🧪 | ❌ | ❌ |
-|  Terminations B      | 🧪 | 🧪 | 🧪 | ❌ | 🧪 | ❌ | ❌ |
+|     Cabling          | Cisco IOS          | Cisco XE           | Cisco XR           | Cisco NXOS         | Cisco WLC          | Juniper Junos      | Arista EOS         | F5  |
+| ----------------------- | :----------------: |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  |  :--------------:  | :-: |
+|  Terminations A      | 🧪 | 🧪 | ❌ | 🧪 | ❌ | 🧪 | ❌ | ❌ |
+|  Terminations B      | 🧪 | 🧪 | ❌ | 🧪 | ❌ | 🧪 | ❌ | ❌ |
 
 | Legend |
 | :---- |
