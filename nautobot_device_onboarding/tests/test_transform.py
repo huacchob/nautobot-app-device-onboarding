@@ -36,6 +36,9 @@ class TestTransformNoGitRepo(unittest.TestCase):
             "hp_comware",
             "paloalto_panos",
             "aruba_aoscx",
+            "aruba_os",
+            "brocade_fastiron",
+            "hp_procurve",
         ]
         self.assertEqual(sorted(default_mappers), list(sorted(command_mappers.keys())))
 
