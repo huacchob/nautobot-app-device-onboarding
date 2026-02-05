@@ -1,19 +1,18 @@
 """Diffsync models."""
 
-from typing import List, Optional
 from uuid import UUID
 
 try:
     from typing import Annotated  # Python>=3.9
 except ImportError:
-    from typing_extensions import Annotated  # Python<3.9
+    from typing import Annotated  # Python<3.9
 
 from diffsync import Adapter, DiffSyncModel
 from diffsync import exceptions as diffsync_exceptions
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Cable, Device, Interface, Location, Platform, SoftwareVersion
+from nautobot.dcim.models import Cable, Device, Interface, Location, Module, Platform, SoftwareVersion
 from nautobot.extras.models import Status
 from nautobot.ipam.models import VLAN, VRF, IPAddress, IPAddressToInterface
 from nautobot_ssot.contrib import CustomFieldAnnotation, NautobotModel
@@ -23,8 +22,7 @@ from nautobot_device_onboarding.utils import diffsync_utils
 
 
 class FilteredNautobotModel(NautobotModel):
-    """
-    Allow Nautobot data to be filtered by the Job form inputs.
+    """Allow Nautobot data to be filtered by the Job form inputs.
 
     Must be used with FilteredNautobotAdapter.
     """
@@ -63,10 +61,10 @@ class SyncNetworkDataDevice(FilteredNautobotModel):
     serial: str
 
     last_network_data_sync: Annotated[
-        Optional[str], CustomFieldAnnotation(key="last_network_data_sync", name="last_network_data_sync")
+        str | None, CustomFieldAnnotation(key="last_network_data_sync", name="last_network_data_sync")
     ] = None
 
-    all_interfaces: List["SyncNetworkDataInterface"] = []
+    all_interfaces: list["SyncNetworkDataInterface"] = []
 
     @classmethod
     def _get_queryset(cls, adapter: "Adapter"):
@@ -79,8 +77,7 @@ class SyncNetworkDataDevice(FilteredNautobotModel):
 
     @classmethod
     def create(cls, adapter, ids, attrs):
-        """
-        Do not create new devices.
+        """Do not create new devices.
 
         Network devices need to exist in Nautobot prior to syncing data and
         need to be included in the queryset generated based on job form inputs.
@@ -90,12 +87,10 @@ class SyncNetworkDataDevice(FilteredNautobotModel):
             "selected for syncing. This device either does not exist in Nautobot "
             "or was not included based on filter criteria provided on the job form."
         )
-        return None
 
     def delete(self):
         """Prevent device deletion."""
         self.adapter.job.logger.error(f"{self} will not be deleted.")
-        return None
 
 
 class SyncNetworkDataInterface(FilteredNautobotModel):
@@ -121,15 +116,15 @@ class SyncNetworkDataInterface(FilteredNautobotModel):
     device__name: str
     name: str
 
-    status__name: Optional[str] = None
-    type: Optional[str] = None
-    mac_address: Optional[str] = None
-    mtu: Optional[str] = None
-    parent_interface__name: Optional[str] = None
-    lag__name: Optional[str] = None
-    mode: Optional[str] = None
-    enabled: Optional[bool] = None
-    description: Optional[str] = None
+    status__name: str | None = None
+    type: str | None = None
+    mac_address: str | None = None
+    mtu: str | None = None
+    parent_interface__name: str | None = None
+    lag__name: str | None = None
+    mode: str | None = None
+    enabled: bool | None = None
+    description: str | None = None
 
 
 class SyncNetworkDataIPAddress(DiffSyncModel):
@@ -257,7 +252,7 @@ class SyncNetworkDataTaggedVlansToInterface(DiffSyncModel):
     device__name: str
     name: str
 
-    tagged_vlans: Optional[list] = None
+    tagged_vlans: list | None = None
 
     @classmethod
     def _get_and_assign_tagged_vlan(cls, adapter, network_vlan, interface, diff_method_type):
@@ -356,7 +351,7 @@ class SyncNetworkDataUnTaggedVlanToInterface(DiffSyncModel):
     device__name: str
     name: str
 
-    untagged_vlan: Optional[dict] = None
+    untagged_vlan: dict | None = None
 
     @classmethod
     def _get_and_assign_untagged_vlan(cls, adapter, attrs, interface, diff_method_type):
@@ -456,7 +451,7 @@ class SyncNetworkDataLagToInterface(DiffSyncModel):
     device__name: str
     name: str
 
-    lag__interface__name: Optional[str] = None
+    lag__interface__name: str | None = None
 
     @classmethod
     def _get_and_assign_lag(cls, adapter, attrs, interface, diff_method_type):
@@ -556,7 +551,7 @@ class SyncNetworkDataVrfToInterface(DiffSyncModel):
     device__name: str
     name: str
 
-    vrf: Optional[dict] = None
+    vrf: dict | None = None
 
     @classmethod
     def _get_and_assign_vrf(cls, adapter, attrs, interface, diff_method_type):
@@ -698,7 +693,7 @@ class SyncNetworkSoftwareVersion(DiffSyncModel):
     version: str
     platform__name: str
 
-    pk: Optional[UUID] = None
+    pk: UUID | None = None
 
     @classmethod
     def create(cls, adapter, ids, attrs):
@@ -727,7 +722,6 @@ class SyncNetworkSoftwareVersion(DiffSyncModel):
     def delete(self):
         """Prevent software version deletion."""
         self.adapter.job.logger.error(f"{self} will not be deleted.")
-        return None
 
 
 class SyncNetworkSoftwareVersionToDevice(DiffSyncModel):
@@ -785,14 +779,126 @@ class SyncNetworkSoftwareVersionToDevice(DiffSyncModel):
 
     @classmethod
     def create(cls, adapter, ids, attrs):
-        """
-        Do not create new devices.
+        """Do not create new devices.
 
         Network devices need to exist in Nautobot prior to syncing data and
         need to be included in the queryset generated based on job form inputs.
         """
-        return None
+        return
 
     def delete(self):
         """Prevent device deletion."""
-        return None
+        return
+
+
+class SyncNetworkModule(DiffSyncModel):
+    """Shared data model representing a software version."""
+
+    _modelname = "module"
+    _model = Module
+    _identifiers = (
+        "version",
+        "platform__name",
+    )
+    _attributes = ()
+    _children = {}
+
+    version: str
+    platform__name: str
+
+    pk: UUID | None = None
+
+    @classmethod
+    def create(cls, adapter, ids, attrs):
+        """Create a new software version."""
+        try:
+            platform = Platform.objects.get(name=ids["platform__name"])
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                f"Failed to create software version {ids['version']}. An platform with name: "
+                f"{ids['platform__name']} was not found."
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
+            software_version = SoftwareVersion(
+                version=ids["version"],
+                platform=platform,
+                status=Status.objects.get(name="Active"),
+            )
+            software_version.validated_save()
+        except ValidationError as err:
+            adapter.job.logger.error(f"Software version {software_version} failed to create, {err}")
+            raise diffsync_exceptions.ObjectNotCreated
+
+        return super().create(adapter, ids, attrs)
+
+    def delete(self):
+        """Prevent software version deletion."""
+        self.adapter.job.logger.error(f"{self} will not be deleted.")
+
+
+class SyncNetworkModuleToDevice(DiffSyncModel):
+    """Shared data model representing a software version to device."""
+
+    _model = Device
+    _modelname = "software_version_to_device"
+    _identifiers = (
+        "name",
+        "serial",
+    )
+    _attributes = ("software_version__version",)
+
+    name: str
+    serial: str
+    software_version__version: str
+
+    def _get_and_assign_sofware_version(self, adapter, attrs):
+        """Assign a software version to a device."""
+        try:
+            device = Device.objects.get(**self.get_identifiers())
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                "Failed to assign software version to %s. No device with name '%s' was found.", self.name, self.name
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
+            software_version = SoftwareVersion.objects.get(
+                version=attrs["software_version__version"], platform=device.platform
+            )
+            device.software_version = software_version
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                "Failed to assign software version to %s. No software version with name '%s' was found.",
+                self.name,
+                self.name,
+            )
+            raise diffsync_exceptions.ObjectNotUpdated
+        try:
+            device.validated_save()
+        except ValidationError as err:
+            adapter.job.logger.error(f"Software version {software_version} failed to assign, {err}")
+            raise diffsync_exceptions.ObjectNotUpdated
+
+    def update(self, attrs):
+        """Update an existing SoftwareVersionToDevice object."""
+        if attrs.get("software_version__version"):
+            try:
+                self._get_and_assign_sofware_version(self.adapter, attrs)
+            except ObjectDoesNotExist as err:
+                self.adapter.job.logger.error(f"{self} failed to update, {err}")
+                raise diffsync_exceptions.ObjectNotUpdated
+
+        return super().update(attrs)
+
+    @classmethod
+    def create(cls, adapter, ids, attrs):
+        """Do not create new devices.
+
+        Network devices need to exist in Nautobot prior to syncing data and
+        need to be included in the queryset generated based on job form inputs.
+        """
+        return
+
+    def delete(self):
+        """Prevent device deletion."""
+        return
