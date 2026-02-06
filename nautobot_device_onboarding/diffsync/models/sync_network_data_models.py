@@ -2,6 +2,8 @@
 
 from uuid import UUID
 
+from nautobot.dcim.models import Manufacturer
+
 try:
     from typing import Annotated  # Python>=3.9
 except ImportError:
@@ -12,7 +14,17 @@ from diffsync import exceptions as diffsync_exceptions
 from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, ValidationError
 from django.db.models import Q
 from nautobot.dcim.choices import InterfaceTypeChoices
-from nautobot.dcim.models import Cable, Device, Interface, Location, Module, Platform, SoftwareVersion
+from nautobot.dcim.models import (
+    Cable,
+    Device,
+    Interface,
+    Location,
+    Module,
+    ModuleBay,
+    ModuleType,
+    Platform,
+    SoftwareVersion,
+)
 from nautobot.extras.models import Status
 from nautobot.ipam.models import VLAN, VRF, IPAddress, IPAddressToInterface
 from nautobot_ssot.contrib import CustomFieldAnnotation, NautobotModel
@@ -791,99 +803,223 @@ class SyncNetworkSoftwareVersionToDevice(DiffSyncModel):
         return
 
 
-class SyncNetworkModule(DiffSyncModel):
-    """Shared data model representing a software version."""
+class SyncNetworkModuleBay(DiffSyncModel):
+    """Shared data model representing a module bay."""
 
-    _modelname = "module"
-    _model = Module
+    _modelname = "module_bay"
+    _model = ModuleBay
     _identifiers = (
-        "version",
-        "platform__name",
+        "name",
+        "parent_device__name",
     )
     _attributes = ()
     _children = {}
 
-    version: str
-    platform__name: str
+    name: str
+    parent_device__name: str
 
     pk: UUID | None = None
 
     @classmethod
     def create(cls, adapter, ids, attrs):
-        """Create a new software version."""
+        """Create a new module bay."""
         try:
-            platform = Platform.objects.get(name=ids["platform__name"])
+            device = Device.objects.get(name=ids["parent_device__name"])
         except ObjectDoesNotExist:
             adapter.job.logger.error(
-                f"Failed to create software version {ids['version']}. An platform with name: "
-                f"{ids['platform__name']} was not found."
+                f"Failed to get device {ids['parent_device__name']}. A device with name: "
+                f"{ids['parent_device__name']} was not found."
             )
             raise diffsync_exceptions.ObjectNotCreated
         try:
-            software_version = SoftwareVersion(
-                version=ids["version"],
-                platform=platform,
-                status=Status.objects.get(name="Active"),
+            module_bay, created = ModuleBay.objects.get_or_create(
+                name=ids["name"],
+                parent_device=device,
             )
-            software_version.validated_save()
+            if created:
+                module_bay.validated_save()
         except ValidationError as err:
-            adapter.job.logger.error(f"Software version {software_version} failed to create, {err}")
+            adapter.job.logger.error(f"Module bay {ids['name']} failed to create, {err}")
             raise diffsync_exceptions.ObjectNotCreated
 
         return super().create(adapter, ids, attrs)
 
     def delete(self):
-        """Prevent software version deletion."""
+        """Prevent module bay deletion."""
         self.adapter.job.logger.error(f"{self} will not be deleted.")
 
 
-class SyncNetworkModuleToDevice(DiffSyncModel):
-    """Shared data model representing a software version to device."""
+class SyncNetworkModuleType(DiffSyncModel):
+    """Shared data model representing a module type."""
 
-    _model = Device
-    _modelname = "software_version_to_device"
+    _modelname = "module_type"
+    _model = ModuleType
     _identifiers = (
-        "name",
-        "serial",
+        "model",
+        "manufacturer__name",
     )
-    _attributes = ("software_version__version",)
+    _attributes = ()
+    _children = {}
 
-    name: str
-    serial: str
-    software_version__version: str
+    model: str
+    manufacturer__name: str
 
-    def _get_and_assign_sofware_version(self, adapter, attrs):
-        """Assign a software version to a device."""
+    pk: UUID | None = None
+
+    @classmethod
+    def create(cls, adapter, ids, attrs):
+        """Create a new module type."""
         try:
-            device = Device.objects.get(**self.get_identifiers())
+            manufacturer = Manufacturer.objects.get(name=ids["manufacturer__name"])
         except ObjectDoesNotExist:
             adapter.job.logger.error(
-                "Failed to assign software version to %s. No device with name '%s' was found.", self.name, self.name
+                f"Failed to get manufacturer {ids['manufacturer__name']}. A manufacturer with name: "
+                f"{ids['manufacturer__name']} was not found."
             )
             raise diffsync_exceptions.ObjectNotCreated
         try:
-            software_version = SoftwareVersion.objects.get(
-                version=attrs["software_version__version"], platform=device.platform
+            module_type, created = ModuleType.objects.get_or_create(
+                model=ids["model"],
+                manufacturer=manufacturer,
             )
-            device.software_version = software_version
+            if created:
+                module_type.validated_save()
+        except ValidationError as err:
+            adapter.job.logger.error(f"Module type {ids['model']} failed to create, {err}")
+            raise diffsync_exceptions.ObjectNotCreated
+
+        return super().create(adapter, ids, attrs)
+
+    def delete(self):
+        """Prevent module type deletion."""
+        self.adapter.job.logger.error(f"{self} will not be deleted.")
+
+
+class SyncNetworkModule(DiffSyncModel):
+    """Shared data model representing a module."""
+
+    _modelname = "module"
+    _model = Module
+    _identifiers = (
+        "module_type__model",
+        "module_type__manufacturer__name",
+        "parent_module_bay__name",
+        "parent_module_bay__parent_device__name",
+    )
+    _attributes = ()
+    _children = {}
+
+    module_type__model: str
+    module_type__manufacturer__name: str
+    parent_module_bay__name: str
+    parent_module_bay__parent_device__name: str
+
+    pk: UUID | None = None
+
+    @classmethod
+    def create(cls, adapter, ids, attrs):
+        """Create a new module."""
+        try:
+            manufacturer = Manufacturer.objects.get(
+                name=ids["module_type__manufacturer__name"],
+            )
         except ObjectDoesNotExist:
             adapter.job.logger.error(
-                "Failed to assign software version to %s. No software version with name '%s' was found.",
-                self.name,
-                self.name,
+                f"Failed to get manufacturer {ids['module_type__manufacturer__name']}. A manufacturer with name: "
+                f"{ids['module_type__manufacturer__name']} was not found."
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
+            module_type = ModuleType.objects.get(
+                model=ids["module_type__model"],
+                manufacturer=manufacturer,
+            )
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                f"Failed to get module type {ids['module_type__model']}. A module type with model: "
+                f"{ids['module_type__model']} was not found."
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
+            device = Device.objects.get(
+                name=ids["parent_module_bay__parent_device__name"],
+            )
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                f"Failed to get device {ids['parent_module_bay__parent_device__name']}. A device with name: "
+                f"{ids['parent_module_bay__parent_device__name']} was not found."
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
+            module_bay = ModuleBay.objects.get(
+                name=ids["parent_module_bay__name"],
+                parent_device=device,
+            )
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                f"Failed to create module bay {ids['parent_module_bay__name']}. A module bay with name: "
+                f"{ids['parent_module_bay__name']} was not found."
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
+            module, created = Module.objects.get_or_create(
+                module_type=module_type,
+                parent_module_bay=module_bay,
+                status=Status.objects.get(name="Active"),
+            )
+            if created:
+                module.validated_save()
+        except ValidationError as err:
+            adapter.job.logger.error(
+                f"Module of type {ids['module_type__model']} on device {ids['parent_module_bay__parent_device__name']} failed to create, {err}"
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+
+        return super().create(adapter, ids, attrs)
+
+    def delete(self):
+        """Prevent module deletion."""
+        self.adapter.job.logger.error(f"{self} will not be deleted.")
+
+
+class SyncNetworkDeviceToModuleBay(DiffSyncModel):
+    """Shared data model representing a device to module bay."""
+
+    _model = ModuleBay
+    _modelname = "device_to_module_bay"
+    _identifiers = ("name", "parent_device__name")
+    _attributes = ("parent_device__name",)
+
+    name: str
+    parent_device__name: str
+
+    def _get_and_assign_module_bay_to_device(self, adapter, attrs):
+        """Assign a software version to a device."""
+        try:
+            device = Device.objects.get(name=attrs["parent_device__name"])
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                f"Failed to create module bay to device {self.parent_device__name}. No module bay with name '{self.name}' was found.",
             )
             raise diffsync_exceptions.ObjectNotUpdated
         try:
+            module_bay = ModuleBay.objects.get(**self.get_identifiers())
+        except ObjectDoesNotExist:
+            adapter.job.logger.error(
+                f"Failed to assign module bay to device {self.parent_device__name}. No module_bay with name '{self.name}' was found.",
+            )
+            raise diffsync_exceptions.ObjectNotCreated
+        try:
             device.validated_save()
         except ValidationError as err:
-            adapter.job.logger.error(f"Software version {software_version} failed to assign, {err}")
+            adapter.job.logger.error(f"Module Bay {module_bay} failed to assign, {err}")
             raise diffsync_exceptions.ObjectNotUpdated
 
     def update(self, attrs):
-        """Update an existing SoftwareVersionToDevice object."""
-        if attrs.get("software_version__version"):
+        """Update an existing ModuleBayToDevice object."""
+        if attrs.get("module_bays__name"):
             try:
-                self._get_and_assign_sofware_version(self.adapter, attrs)
+                self._get_and_assign_module_bay(self.adapter, attrs)
             except ObjectDoesNotExist as err:
                 self.adapter.job.logger.error(f"{self} failed to update, {err}")
                 raise diffsync_exceptions.ObjectNotUpdated
