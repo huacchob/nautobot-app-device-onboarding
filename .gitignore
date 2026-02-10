@@ -1,6 +1,10 @@
 # Ansible Retry Files
 *.retry
 
+# AI
+*CLAUDE.md
+prompt.md
+
 # Swap files
 *.swp
 
