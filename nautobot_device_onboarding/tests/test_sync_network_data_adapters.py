@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from nautobot.apps.testing import TransactionTestCase
-from nautobot.dcim.models import Cable, Device, Interface, SoftwareVersion
+from nautobot.dcim.models import Cable, Device, Interface, Module, ModuleBay, ModuleType, SoftwareVersion
 from nautobot.extras.models import JobResult
 from nautobot.ipam.models import VLAN, VRF, IPAddress
 
@@ -258,6 +258,45 @@ class SyncNetworkDataNetworkAdapterTestCase(TransactionTestCase):
             diffsync_obj = self.sync_network_data_adapter.get("software_version_to_device", unique_id)
             self.assertEqual(device_data["software_version"], diffsync_obj.software_version__version)
 
+    def test_load_module_bay(self):
+        """Test loading module bay data returned from command getter into the diffsync store."""
+        self.job.sync_modules = True
+        self.sync_network_data_adapter.load_module_bay()
+        for hostname, device_data in self.job.command_getter_result.items():
+            if device_data.get("modules"):
+                for bay_name in device_data["modules"].keys():
+                    unique_id = f"{bay_name}__{hostname}"
+                    diffsync_obj = self.sync_network_data_adapter.get("module_bay", unique_id)
+                    self.assertEqual(bay_name, diffsync_obj.name)
+                    self.assertEqual(hostname, diffsync_obj.parent_device__name)
+
+    def test_load_module_type(self):
+        """Test loading module type data returned from command getter into the diffsync store."""
+        self.job.sync_modules = True
+        self.sync_network_data_adapter.load_module_type()
+        for _, device_data in self.job.command_getter_result.items():
+            if device_data.get("modules"):
+                for module_data in device_data["modules"].values():
+                    if module_data.get("module_type") and module_data.get("manufacturer"):
+                        unique_id = f"{module_data['module_type']}__{module_data['manufacturer']}"
+                        diffsync_obj = self.sync_network_data_adapter.get("module_type", unique_id)
+                        self.assertEqual(module_data["module_type"], diffsync_obj.model)
+                        self.assertEqual(module_data["manufacturer"], diffsync_obj.manufacturer__name)
+
+    def test_load_module(self):
+        """Test loading module data returned from command getter into the diffsync store."""
+        self.job.sync_modules = True
+        self.sync_network_data_adapter.load_module()
+        for hostname, device_data in self.job.command_getter_result.items():
+            if device_data.get("modules"):
+                for bay_name, module_data in device_data["modules"].items():
+                    unique_id = f"{module_data['module_type']}__{module_data['manufacturer']}__{bay_name}__{hostname}"
+                    diffsync_obj = self.sync_network_data_adapter.get("module", unique_id)
+                    self.assertEqual(module_data["module_type"], diffsync_obj.module_type__model)
+                    self.assertEqual(module_data["manufacturer"], diffsync_obj.module_type__manufacturer__name)
+                    self.assertEqual(bay_name, diffsync_obj.parent_module_bay__name)
+                    self.assertEqual(hostname, diffsync_obj.parent_module_bay__parent_device__name)
+
 
 class SyncNetworkDataNautobotAdapterTestCase(TransactionTestCase):
     """Test SyncNetworkDataNautobotAdapter class."""
@@ -441,6 +480,38 @@ class SyncNetworkDataNautobotAdapterTestCase(TransactionTestCase):
             unique_id = f"{device.name}__{device.serial}"
             diffsync_obj = self.sync_network_data_adapter.get("software_version_to_device", unique_id)
             self.assertEqual(device.software_version.version, diffsync_obj.software_version__version)
+
+    def test_load_module_bay(self):
+        """Test loading Nautobot module bay data into the diffsync store."""
+        self.job.sync_modules = True
+        self.sync_network_data_adapter.load_module_bay()
+        for module_bay in ModuleBay.objects.filter(parent_device__in=self.job.devices_to_load):
+            unique_id = f"{module_bay.name}__{module_bay.parent_device.name}"
+            diffsync_obj = self.sync_network_data_adapter.get("module_bay", unique_id)
+            self.assertEqual(module_bay.name, diffsync_obj.name)
+            self.assertEqual(module_bay.parent_device.name, diffsync_obj.parent_device__name)
+
+    def test_load_module_type(self):
+        """Test loading Nautobot module type data into the diffsync store."""
+        self.job.sync_modules = True
+        self.sync_network_data_adapter.load_module_type()
+        for module_type in ModuleType.objects.all():
+            unique_id = f"{module_type.model}__{module_type.manufacturer.name}"
+            diffsync_obj = self.sync_network_data_adapter.get("module_type", unique_id)
+            self.assertEqual(module_type.model, diffsync_obj.model)
+            self.assertEqual(module_type.manufacturer.name, diffsync_obj.manufacturer__name)
+
+    def test_load_module(self):
+        """Test loading Nautobot module data into the diffsync store."""
+        self.job.sync_modules = True
+        self.sync_network_data_adapter.load_module()
+        for module in Module.objects.filter(parent_module_bay__parent_device__in=self.job.devices_to_load):
+            unique_id = f"{module.module_type.model}__{module.module_type.manufacturer.name}__{module.parent_module_bay.name}__{module.parent_module_bay.parent_device.name}"
+            diffsync_obj = self.sync_network_data_adapter.get("module", unique_id)
+            self.assertEqual(module.module_type.model, diffsync_obj.module_type__model)
+            self.assertEqual(module.module_type.manufacturer.name, diffsync_obj.module_type__manufacturer__name)
+            self.assertEqual(module.parent_module_bay.name, diffsync_obj.parent_module_bay__name)
+            self.assertEqual(module.parent_module_bay.parent_device.name, diffsync_obj.parent_module_bay__parent_device__name)
 
     def test_sync_complete(self):
         """Test primary ip re-assignment if deleted during the sync."""

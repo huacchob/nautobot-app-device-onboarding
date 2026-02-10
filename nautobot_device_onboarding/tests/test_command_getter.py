@@ -19,7 +19,7 @@ class TestGetCommandsToRun(unittest.TestCase):
     """Test the ability to get the proper commands to run."""
 
     def setUp(self):
-        with open(f"{MOCK_DIR}/command_mappers/mock_cisco_ios.yml", "r", encoding="utf-8") as mock_file_data:
+        with open(f"{MOCK_DIR}/command_mappers/mock_cisco_ios.yml", encoding="utf-8") as mock_file_data:
             self.expected_data = yaml.safe_load(mock_file_data)
 
     def test_deduplicate_command_list_sync_devices(self):
@@ -30,6 +30,7 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_vrfs=False,
             sync_cables=False,
             sync_software_version=False,
+            sync_modules=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "jpath": "[*].hostname", "parser": "textfsm"},
@@ -50,6 +51,7 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_vrfs=False,
             sync_cables=False,
             sync_software_version=False,
+            sync_modules=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "parser": "textfsm", "jpath": "[*].serial[]"},
@@ -84,6 +86,7 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_vrfs=True,
             sync_cables=False,
             sync_software_version=False,
+            sync_modules=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "parser": "textfsm", "jpath": "[*].serial[]"},
@@ -125,6 +128,7 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_vrfs=False,
             sync_cables=False,
             sync_software_version=False,
+            sync_modules=False,
         )
         expected_commands_to_run = [
             {"command": "show vlan", "parser": "textfsm", "jpath": "[*].{id: vlan_id, name: vlan_name}"},
@@ -160,6 +164,7 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_vrfs=True,
             sync_cables=False,
             sync_software_version=False,
+            sync_modules=False,
         )
         expected_commands_to_run = [
             {"command": "show vlan", "parser": "textfsm", "jpath": "[*].{id: vlan_id, name: vlan_name}"},
@@ -201,6 +206,7 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_vrfs=False,
             sync_cables=True,
             sync_software_version=False,
+            sync_modules=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "parser": "textfsm", "jpath": "[*].serial[]"},

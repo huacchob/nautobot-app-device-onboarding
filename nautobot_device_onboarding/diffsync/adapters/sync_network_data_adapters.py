@@ -383,7 +383,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 module_type__model=module.module_type.model,
                 module_type__manufacturer__name=module.module_type.manufacturer.name,
                 parent_module_bay__name=module.parent_module_bay.name,
-                parent_module_bay__parent_device__name=module.parent_module_bay.device.name,
+                parent_module_bay__parent_device__name=module.parent_module_bay.parent_device.name,
             )
             try:
                 network_module.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
