@@ -2,6 +2,7 @@
 
 import copy
 import datetime
+import operator
 
 import diffsync
 from diffsync.enum import DiffSyncModelFlags
@@ -9,7 +10,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from nautobot.dcim.models import Device, Interface, SoftwareVersion
+from nautobot.dcim.models import Device, Interface, Module, ModuleBay, ModuleType, SoftwareVersion
 from nautobot.ipam.models import VLAN, VRF, IPAddress
 from nautobot_ssot.contrib import NautobotAdapter
 from netaddr import EUI, mac_unix_expanded
@@ -25,8 +26,7 @@ app_settings = settings.PLUGINS_CONFIG["nautobot_device_onboarding"]
 
 
 class FilteredNautobotAdapter(NautobotAdapter):
-    """
-    Allow Nautobot data to be filtered by the Job form inputs.
+    """Allow Nautobot data to be filtered by the Job form inputs.
 
     Must be used with FilteredNautobotModel.
     """
@@ -56,6 +56,9 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
     cable = sync_network_data_models.SyncNetworkDataCable
     software_version = sync_network_data_models.SyncNetworkSoftwareVersion
     software_version_to_device = sync_network_data_models.SyncNetworkSoftwareVersionToDevice
+    module_bay = sync_network_data_models.SyncNetworkModuleBay
+    module_type = sync_network_data_models.SyncNetworkModuleType
+    module = sync_network_data_models.SyncNetworkModule
 
     primary_ips = None
 
@@ -72,11 +75,13 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         "cable",
         "software_version",
         "software_version_to_device",
+        "module_bay",
+        "module_type",
+        "module",
     ]
 
     def _cache_primary_ips(self, device_queryset):
-        """
-        Create a cache of primary ip address for devices.
+        """Create a cache of primary ip address for devices.
 
         If the primary ip address of a device is unset due to the deletion
         of an interface, this cache is used to reset it in sync_complete().
@@ -133,8 +138,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         return ip_address_hosts
 
     def load_vlans(self):
-        """
-        Load Vlans into the Diffsync store.
+        """Load Vlans into the Diffsync store.
 
         Only Vlans that share locations with devices included in the sync should be loaded.
         """
@@ -162,8 +166,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 pass
 
     def load_tagged_vlans_to_interface(self):
-        """
-        Load Tagged VLAN interface assignments into the Diffsync store.
+        """Load Tagged VLAN interface assignments into the Diffsync store.
 
         Only Vlan assignments that were returned by the CommandGetter job should be loaded.
         """
@@ -175,7 +178,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                     vlan_dict["name"] = vlan.name
                     vlan_dict["id"] = str(vlan.vid)
                     tagged_vlans.append(vlan_dict)
-                sorted_tagged_vlans = sorted(tagged_vlans, key=lambda x: x["id"])
+                sorted_tagged_vlans = sorted(tagged_vlans, key=operator.itemgetter("id"))
 
                 network_tagged_vlans_to_interface = self.tagged_vlans_to_interface(
                     adapter=self,
@@ -187,8 +190,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_tagged_vlans_to_interface)
 
     def load_untagged_vlan_to_interface(self):
-        """
-        Load UnTagged VLAN interface assignments into the Diffsync store.
+        """Load UnTagged VLAN interface assignments into the Diffsync store.
 
         Only UnTagged Vlan assignments that were returned by the CommandGetter job should be synced.
         """
@@ -209,8 +211,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_untagged_vlan_to_interface)
 
     def load_lag_to_interface(self):
-        """
-        Load Lag interface assignments into the Diffsync store.
+        """Load Lag interface assignments into the Diffsync store.
 
         Only Lag assignments that were returned by the CommandGetter job should be synced.
         """
@@ -226,8 +227,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_lag_to_interface)
 
     def load_vrfs(self):
-        """
-        Load Vrfs into the Diffsync store.
+        """Load Vrfs into the Diffsync store.
 
         Only Vrfs that were returned by the CommandGetter job should be synced.
         """
@@ -244,8 +244,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 continue
 
     def load_vrf_to_interface(self):
-        """
-        Load Vrf to  interface assignments into the Diffsync store.
+        """Load Vrf to  interface assignments into the Diffsync store.
 
         Only Vrf assignments that were returned by the CommandGetter job should be synced.
         """
@@ -265,8 +264,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_vrf_to_interface)
 
     def load_cables(self):
-        """
-        Load Cables into diffsync store.
+        """Load Cables into diffsync store.
 
         Only cables returned by the CommandGetter job should be synced.
         """
@@ -349,6 +347,50 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
             network_software_version_to_device.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
             self.add(network_software_version_to_device)
 
+    def load_module_bay(self):
+        """Load Module Bays into the Diffsync store."""
+        for module_bay in ModuleBay.objects.all():
+            network_module_bay = self.module_bay(
+                adapter=self,
+                name=module_bay.name,
+                parent_device__name=module_bay.parent_device.name,
+            )
+            try:
+                network_module_bay.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
+                self.add(network_module_bay)
+            except diffsync.exceptions.ObjectAlreadyExists:
+                continue
+
+    def load_module_type(self):
+        """Load Module Types into the Diffsync store."""
+        for module_type in ModuleType.objects.all():
+            network_module_type = self.module_type(
+                adapter=self,
+                model=module_type.model,
+                manufacturer__name=module_type.manufacturer.name,
+            )
+            try:
+                network_module_type.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
+                self.add(network_module_type)
+            except diffsync.exceptions.ObjectAlreadyExists:
+                continue
+
+    def load_module(self):
+        """Load Modules into the Diffsync store."""
+        for module in Module.objects.all():
+            network_module = self.module(
+                adapter=self,
+                module_type__model=module.module_type.model,
+                module_type__manufacturer__name=module.module_type.manufacturer.name,
+                parent_module_bay__name=module.parent_module_bay.name,
+                parent_module_bay__parent_device__name=module.parent_module_bay.device.name,
+            )
+            try:
+                network_module.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
+                self.add(network_module)
+            except diffsync.exceptions.ObjectAlreadyExists:
+                continue
+
     def _handle_single_parameter(self, parameters, parameter_name, database_object, diffsync_model):
         """Overload parameter handling to add special handling for modular interfaces."""
         if parameter_name == "device__name":
@@ -399,13 +441,21 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
             elif model_name == "software_version_to_device":
                 if self.job.sync_software_version:
                     self.load_software_version_to_device()
+            elif model_name == "module_bay":
+                if self.job.sync_modules:
+                    self.load_module_bay()
+            elif model_name == "module_type":
+                if self.job.sync_modules:
+                    self.load_module_type()
+            elif model_name == "module":
+                if self.job.sync_modules:
+                    self.load_module()
             else:
                 diffsync_model = self._get_diffsync_class(model_name)
                 self._load_objects(diffsync_model)
 
     def sync_complete(self, source, diff, *args, **kwargs):
-        """
-        Assign the primary ip address to a device and update the management interface setting.
+        """Assign the primary ip address to a device and update the management interface setting.
 
         Syncing interfaces may result in the deletion of the original management interface. If
         this happens, the primary IP Address for the device should be set and the management only
@@ -479,6 +529,9 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
     cable = sync_network_data_models.SyncNetworkDataCable
     software_version = sync_network_data_models.SyncNetworkSoftwareVersion
     software_version_to_device = sync_network_data_models.SyncNetworkSoftwareVersionToDevice
+    module_bay = sync_network_data_models.SyncNetworkModuleBay
+    module_type = sync_network_data_models.SyncNetworkModuleType
+    module = sync_network_data_models.SyncNetworkModule
 
     top_level = [
         "ip_address",
@@ -493,11 +546,13 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         "cable",
         "software_version",
         "software_version_to_device",
+        "module_bay",
+        "module_type",
+        "module",
     ]
 
     def _handle_failed_devices(self, device_data):
-        """
-        Handle result data from failed devices.
+        """Handle result data from failed devices.
 
         If a device fails to return expected data, log the result
         and remove it from the data to be loaded into the diffsync store.
@@ -783,7 +838,7 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
             # for interface in device_data["interfaces"]:
             for interface_name, interface_data in device_data["interfaces"].items():
                 try:
-                    sorted_tagged_vlans = sorted(interface_data["tagged_vlans"], key=lambda x: x["id"])
+                    sorted_tagged_vlans = sorted(interface_data["tagged_vlans"], key=operator.itemgetter("id"))
                     network_tagged_vlans_to_interface = self.tagged_vlans_to_interface(
                         adapter=self,
                         device__name=hostname,
@@ -1008,6 +1063,85 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
                 except diffsync.exceptions.ObjectAlreadyExists:
                     continue
 
+    def load_module_bay(self):
+        """Load module bays into the Diffsync store."""
+        for hostname, device_data in self.job.command_getter_result.items():
+            if self.job.debug:
+                self.job.logger.debug(f"Loading Module Bays from {hostname}")
+            if device_data.get("modules"):
+                for bay_name in device_data["modules"].keys():
+                    try:
+                        network_module_bay = self.module_bay(
+                            adapter=self,
+                            name=bay_name,
+                            parent_device__name=hostname,
+                        )
+                        network_module_bay.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
+                        self.add(network_module_bay)
+                    except diffsync.exceptions.ObjectAlreadyExists:
+                        continue
+                    except Exception as err:  # pylint: disable=broad-exception-caught
+                        self._handle_general_load_exception(
+                            error=err,
+                            hostname=hostname,
+                            data=device_data,
+                            model_type="module_bay",
+                        )
+
+    def load_module_type(self):
+        """Load module types into the Diffsync store."""
+        for hostname, device_data in self.job.command_getter_result.items():
+            if self.job.debug:
+                self.job.logger.debug(f"Loading Module Types from {hostname}")
+            if device_data.get("modules"):
+                for module_data in device_data["modules"].values():
+                    if module_data.get("module_type") and module_data.get("manufacturer"):
+                        try:
+                            network_module_type = self.module_type(
+                                adapter=self,
+                                model=module_data["module_type"],
+                                manufacturer__name=module_data["manufacturer"],
+                            )
+                            network_module_type.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
+                            self.add(network_module_type)
+                        except diffsync.exceptions.ObjectAlreadyExists:
+                            continue
+                        except Exception as err:  # pylint: disable=broad-exception-caught
+                            self._handle_general_load_exception(
+                                error=err,
+                                hostname=hostname,
+                                data=device_data,
+                                model_type="module_type",
+                            )
+
+    def load_module(self):
+        """Load modules into the Diffsync store."""
+        for hostname, device_data in self.job.command_getter_result.items():
+            if self.job.debug:
+                self.job.logger.debug(f"Loading Modules from {hostname}")
+            if device_data.get("modules"):
+                for bay_name, module_data in device_data["modules"].items():
+                    if module_data.get("module_type") and module_data.get("manufacturer"):
+                        try:
+                            network_module = self.module(
+                                adapter=self,
+                                module_type__model=module_data["module_type"],
+                                module_type__manufacturer__name=module_data["manufacturer"],
+                                parent_module_bay__name=bay_name,
+                                parent_module_bay__parent_device__name=hostname,
+                            )
+                            network_module.model_flags = DiffSyncModelFlags.SKIP_UNMATCHED_DST
+                            self.add(network_module)
+                        except diffsync.exceptions.ObjectAlreadyExists:
+                            continue
+                        except Exception as err:  # pylint: disable=broad-exception-caught
+                            self._handle_general_load_exception(
+                                error=err,
+                                hostname=hostname,
+                                data=device_data,
+                                model_type="module",
+                            )
+
     def load(self):
         """Load network data."""
         self.execute_command_getter()
@@ -1030,3 +1164,9 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
             self.load_software_versions()
         if self.job.sync_software_version:
             self.load_software_version_to_device()
+        if self.job.sync_modules:
+            self.load_module_bay()
+        if self.job.sync_modules:
+            self.load_module_type()
+        if self.job.sync_modules:
+            self.load_module()

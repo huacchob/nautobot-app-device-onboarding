@@ -610,6 +610,7 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
     sync_vrfs = BooleanVar(default=False, description="Sync VRFs and interface VRF assignments.")
     sync_cables = BooleanVar(default=False, description="Sync cables between interfaces via a LLDP or CDP.")
     sync_software_version = BooleanVar(default=False, description="Sync software version from device.")
+    sync_modules = BooleanVar(default=False, description="Sync modules from device.")
     namespace = ObjectVar(
         model=Namespace,
         required=True,
