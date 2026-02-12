@@ -14,6 +14,7 @@ from nautobot.ipam.models import VLAN, VRF, IPAddress
 from nautobot_ssot.contrib import NautobotAdapter
 from netaddr import EUI, mac_unix_expanded
 from netutils.interface import canonical_interface_name
+from remote_pdb import RemotePdb
 
 from nautobot_device_onboarding.diffsync.models import sync_network_data_models
 from nautobot_device_onboarding.nornir_plays.command_getter import (
@@ -358,7 +359,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
 
     def load_module_bay(self):
         """Load Module Bays into the Diffsync store."""
-        breakpoint()
+        RemotePdb(host="127.0.0.1", port=4444).set_trace()
         for module_bay in ModuleBay.objects.all():
             network_module_bay = self.module_bay(
                 adapter=self,
