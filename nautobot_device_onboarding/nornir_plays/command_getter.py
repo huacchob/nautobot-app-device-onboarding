@@ -64,7 +64,9 @@ def deduplicate_command_list(data):
     return unique_list
 
 
-def _get_commands_to_run(yaml_parsed_info, sync_vlans, sync_vrfs, sync_cables, sync_software_version, sync_modules):
+def _get_commands_to_run(
+    yaml_parsed_info, sync_vlans, sync_vrfs, sync_cables, sync_software_version, sync_modules, sync_power_supplies
+):
     """Using merged command mapper info and look up all commands that need to be run."""
     all_commands = []
     for key, value in yaml_parsed_info.items():
@@ -101,6 +103,9 @@ def _get_commands_to_run(yaml_parsed_info, sync_vlans, sync_vrfs, sync_cables, s
                     # If syncing modules isn't in scope remove the unneeded commands.
                     if not sync_modules and key.startswith("modules"):
                         continue
+                    # If syncing power_supplies isn't in scope remove the unneeded commands.
+                    if not sync_power_supplies and key.startswith("power_supplies"):
+                        continue
                     all_commands.append(command)
             else:
                 if isinstance(current_root_key, dict):
@@ -119,6 +124,9 @@ def _get_commands_to_run(yaml_parsed_info, sync_vlans, sync_vrfs, sync_cables, s
                         continue
                     # If syncing modules isn't in scope remove the unneeded commands.
                     if not sync_modules and key.startswith("modules"):
+                        continue
+                    # If syncing power_supplies isn't in scope remove the unneeded commands.
+                    if not sync_power_supplies and key.startswith("power_supplies"):
                         continue
                     all_commands.append(current_root_key)
     return deduplicate_command_list(all_commands)
@@ -148,6 +156,7 @@ def netmiko_send_commands(task: Task, command_getter_yaml_data: Dict, command_ge
         getattr(nautobot_job, "sync_cables", False),
         getattr(nautobot_job, "sync_software_version", False),
         getattr(nautobot_job, "sync_modules", False),
+        getattr(nautobot_job, "sync_power_supplies", False),
     )
     if (
         getattr(nautobot_job, "sync_cables", False)

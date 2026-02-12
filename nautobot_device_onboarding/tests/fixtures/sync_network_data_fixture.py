@@ -118,6 +118,20 @@ sync_network_mock_data_valid = {
                 "description": "4x1G Uplink Module",
             },
         },
+        "power_supplies": {
+            "Switch 1 - Power Supply A": {
+                "module_type": "PWR-C1-1900WAC-P",
+                "manufacturer": "Cisco",
+                "serial": "LIT2717A47Q",
+                "description": "Switch 1 - Power Supply A",
+            },
+            "Switch 1 - Power Supply B": {
+                "module_type": "PWR-C1-1900WAC-P",
+                "manufacturer": "Cisco",
+                "serial": "LIT2717A44T",
+                "description": "Switch 1 - Power Supply B",
+            },
+        },
     },
     "demo-cisco-2": {
         "serial": "9ABUXU5882222",
@@ -201,6 +215,7 @@ sync_network_mock_data_valid = {
         ],
         "software_version": "3.12R.4",
         "modules": {},
+        "power_supplies": {},
     },
 }
 failed_device = {"demo-cisco-3": {"failed": True, "failed_reason": "Authentication failure"}}

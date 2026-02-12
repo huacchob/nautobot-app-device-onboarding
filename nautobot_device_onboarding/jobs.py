@@ -609,6 +609,7 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
     sync_cables = BooleanVar(default=False, description="Sync cables between interfaces via a LLDP or CDP.")
     sync_software_version = BooleanVar(default=False, description="Sync software version from device.")
     sync_modules = BooleanVar(default=False, description="Sync modules from device.")
+    sync_power_supplies = BooleanVar(default=False, description="Sync power supplies from device.")
     namespace = ObjectVar(
         model=Namespace,
         required=True,
@@ -680,6 +681,7 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         sync_cables,
         sync_software_version,
         sync_modules,
+        sync_power_supplies,
         namespace,
         interface_status,
         ip_address_status,
@@ -699,6 +701,7 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         self.sync_cables = sync_cables
         self.sync_software_version = sync_software_version
         self.sync_modules = sync_modules
+        self.sync_power_supplies = sync_power_supplies
         self.namespace = namespace
         self.interface_status = interface_status
         self.ip_address_status = ip_address_status

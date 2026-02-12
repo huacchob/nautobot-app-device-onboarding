@@ -12,7 +12,7 @@ from nautobot.apps.choices import InterfaceModeChoices
 from nautobot.apps.jobs import Job as JobClass
 from nautobot.apps.testing import create_job_result_and_run_job
 from nautobot.core.testing import TransactionTestCase
-from nautobot.dcim.models import Device, Interface, Manufacturer, Platform
+from nautobot.dcim.models import Device, Interface, Manufacturer, Module, ModuleBay, ModuleType, Platform
 from nautobot.extras.choices import JobResultStatusChoices
 from nautobot.extras.models import FileProxy
 from nautobot.ipam.models import VLAN, VRF
@@ -208,6 +208,7 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
             "sync_cables": True,
             "sync_software_version": True,
             "sync_modules": True,
+            "sync_power_supplies": True,
             "namespace": self.testing_objects["namespace"].pk,
             "interface_status": self.testing_objects["status"].pk,
             "ip_address_status": self.testing_objects["status"].pk,
@@ -255,6 +256,24 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
 
                 if interface_data["vrf"]:
                     self.assertEqual(interface.vrf.name, interface_data["vrf"]["name"])
+
+            # Verify power supplies (modules) were created
+            if data.get("power_supplies"):
+                for ps_name, ps_data in data["power_supplies"].items():
+                    # Verify ModuleBay was created
+                    module_bay = ModuleBay.objects.get(name=ps_name, parent_device=device)
+                    self.assertEqual(module_bay.parent_device, device)
+
+                    # Verify ModuleType was created
+                    module_type = ModuleType.objects.get(
+                        model=ps_data["module_type"], manufacturer__name=ps_data["manufacturer"]
+                    )
+                    self.assertEqual(module_type.model, ps_data["module_type"])
+
+                    # Verify Module (power supply instance) was created
+                    module = Module.objects.get(parent_module_bay=module_bay, module_type=module_type)
+                    self.assertEqual(module.parent_module_bay, module_bay)
+                    self.assertEqual(module.module_type, module_type)
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     @patch.dict("os.environ", {"DEVICE_USER": "admin", "DEVICE_PASS": "admin"})
@@ -350,6 +369,7 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
             "sync_cables": True,
             "sync_software_version": True,
             "sync_modules": True,
+            "sync_power_supplies": False,
             "namespace": self.testing_objects["namespace"].pk,
             "interface_status": self.testing_objects["status"].pk,
             "ip_address_status": self.testing_objects["status"].pk,
@@ -465,6 +485,7 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
             "sync_cables": False,
             "sync_software_version": True,
             "sync_modules": False,
+            "sync_power_supplies": False,
             "namespace": self.testing_objects["namespace"].pk,
             "interface_status": self.testing_objects["status"].pk,
             "ip_address_status": self.testing_objects["status"].pk,

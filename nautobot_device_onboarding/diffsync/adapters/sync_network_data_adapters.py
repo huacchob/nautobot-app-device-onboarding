@@ -14,7 +14,6 @@ from nautobot.ipam.models import VLAN, VRF, IPAddress
 from nautobot_ssot.contrib import NautobotAdapter
 from netaddr import EUI, mac_unix_expanded
 from netutils.interface import canonical_interface_name
-from remote_pdb import RemotePdb
 
 from nautobot_device_onboarding.diffsync.models import sync_network_data_models
 from nautobot_device_onboarding.nornir_plays.command_getter import (
@@ -26,8 +25,7 @@ app_settings = settings.PLUGINS_CONFIG["nautobot_device_onboarding"]
 
 
 class FilteredNautobotAdapter(NautobotAdapter):
-    """
-    Allow Nautobot data to be filtered by the Job form inputs.
+    """Allow Nautobot data to be filtered by the Job form inputs.
 
     Must be used with FilteredNautobotModel.
     """
@@ -82,8 +80,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
     ]
 
     def _cache_primary_ips(self, device_queryset):
-        """
-        Create a cache of primary ip address for devices.
+        """Create a cache of primary ip address for devices.
 
         If the primary ip address of a device is unset due to the deletion
         of an interface, this cache is used to reset it in sync_complete().
@@ -141,8 +138,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         return ip_address_hosts
 
     def load_vlans(self):
-        """
-        Load Vlans into the Diffsync store.
+        """Load Vlans into the Diffsync store.
 
         Only Vlans that share locations with devices included in the sync should be loaded.
         """
@@ -170,8 +166,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 pass
 
     def load_tagged_vlans_to_interface(self):
-        """
-        Load Tagged VLAN interface assignments into the Diffsync store.
+        """Load Tagged VLAN interface assignments into the Diffsync store.
 
         Only Vlan assignments that were returned by the CommandGetter job should be loaded.
         """
@@ -195,8 +190,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_tagged_vlans_to_interface)
 
     def load_untagged_vlan_to_interface(self):
-        """
-        Load UnTagged VLAN interface assignments into the Diffsync store.
+        """Load UnTagged VLAN interface assignments into the Diffsync store.
 
         Only UnTagged Vlan assignments that were returned by the CommandGetter job should be synced.
         """
@@ -217,8 +211,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_untagged_vlan_to_interface)
 
     def load_lag_to_interface(self):
-        """
-        Load Lag interface assignments into the Diffsync store.
+        """Load Lag interface assignments into the Diffsync store.
 
         Only Lag assignments that were returned by the CommandGetter job should be synced.
         """
@@ -234,8 +227,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_lag_to_interface)
 
     def load_vrfs(self):
-        """
-        Load Vrfs into the Diffsync store.
+        """Load Vrfs into the Diffsync store.
 
         Only Vrfs that were returned by the CommandGetter job should be synced.
         """
@@ -252,8 +244,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 continue
 
     def load_vrf_to_interface(self):
-        """
-        Load Vrf to  interface assignments into the Diffsync store.
+        """Load Vrf to  interface assignments into the Diffsync store.
 
         Only Vrf assignments that were returned by the CommandGetter job should be synced.
         """
@@ -273,8 +264,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_vrf_to_interface)
 
     def load_cables(self):
-        """
-        Load Cables into diffsync store.
+        """Load Cables into diffsync store.
 
         Only cables returned by the CommandGetter job should be synced.
         """
@@ -454,21 +444,20 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 if self.job.sync_software_version:
                     self.load_software_version_to_device()
             elif model_name == "module_bay":
-                if self.job.sync_modules:
+                if self.job.sync_modules or self.job.sync_power_supplies:
                     self.load_module_bay()
             elif model_name == "module_type":
-                if self.job.sync_modules:
+                if self.job.sync_modules or self.job.sync_power_supplies:
                     self.load_module_type()
             elif model_name == "module":
-                if self.job.sync_modules:
+                if self.job.sync_modules or self.job.sync_power_supplies:
                     self.load_module()
             else:
                 diffsync_model = self._get_diffsync_class(model_name)
                 self._load_objects(diffsync_model)
 
     def sync_complete(self, source, diff, *args, **kwargs):
-        """
-        Assign the primary ip address to a device and update the management interface setting.
+        """Assign the primary ip address to a device and update the management interface setting.
 
         Syncing interfaces may result in the deletion of the original management interface. If
         this happens, the primary IP Address for the device should be set and the management only
@@ -562,8 +551,7 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
     ]
 
     def _handle_failed_devices(self, device_data):
-        """
-        Handle result data from failed devices.
+        """Handle result data from failed devices.
 
         If a device fails to return expected data, log the result
         and remove it from the data to be loaded into the diffsync store.
@@ -1079,8 +1067,14 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         for hostname, device_data in self.job.command_getter_result.items():
             if self.job.debug:
                 self.job.logger.debug(f"Loading Module Bays from {hostname}")
-            if device_data.get("modules"):
-                for bay_name in device_data["modules"].keys():
+            if device_data.get("modules") or device_data.get("power_supplies"):
+                module_sources = []
+                if device_data.get("modules"):
+                    module_sources.extend(device_data["modules"].keys())
+                if device_data.get("power_supplies"):
+                    module_sources.extend(device_data["power_supplies"].keys())
+
+                for bay_name in module_sources:
                     try:
                         network_module_bay = self.module_bay(
                             adapter=self,
@@ -1104,8 +1098,14 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         for hostname, device_data in self.job.command_getter_result.items():
             if self.job.debug:
                 self.job.logger.debug(f"Loading Module Types from {hostname}")
-            if device_data.get("modules"):
-                for module_data in device_data["modules"].values():
+            if device_data.get("modules") or device_data.get("power_supplies"):
+                module_type_sources = []
+                if device_data.get("modules"):
+                    module_type_sources.extend(device_data["modules"].values())
+                if device_data.get("power_supplies"):
+                    module_type_sources.extend(device_data["power_supplies"].values())
+
+                for module_data in module_type_sources:
                     if module_data.get("module_type") and module_data.get("manufacturer"):
                         try:
                             network_module_type = self.module_type(
@@ -1130,8 +1130,14 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         for hostname, device_data in self.job.command_getter_result.items():
             if self.job.debug:
                 self.job.logger.debug(f"Loading Modules from {hostname}")
-            if device_data.get("modules"):
-                for bay_name, module_data in device_data["modules"].items():
+            if device_data.get("modules") or device_data.get("power_supplies"):
+                module_items = []
+                if device_data.get("modules"):
+                    module_items.extend(device_data["modules"].items())
+                if device_data.get("power_supplies"):
+                    module_items.extend(device_data["power_supplies"].items())
+
+                for bay_name, module_data in module_items:
                     if module_data.get("module_type") and module_data.get("manufacturer"):
                         try:
                             network_module = self.module(
