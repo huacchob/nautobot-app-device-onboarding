@@ -361,7 +361,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         """Load Module Bays into the Diffsync store."""
         for module_bay in ModuleBay.objects.all():
             if not isinstance(module_bay.parent_device.name, str):
-                RemotePdb(host="127.0.0.1", port=4444).set_trace()
+                continue
             network_module_bay = self.module_bay(
                 adapter=self,
                 name=module_bay.name,
