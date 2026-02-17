@@ -16,6 +16,18 @@ files = [
 vine = ">=5.0.0,<6.0.0"
 
 [[package]]
+name = "aniso8601"
+version = "7.0.0"
+description = "A library for parsing ISO 8601 strings."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "aniso8601-7.0.0-py2.py3-none-any.whl", hash = "sha256:d10a4bf949f619f719b227ef5386e31f49a2b6d453004b21f02661ccc8670c7b"},
+    {file = "aniso8601-7.0.0.tar.gz", hash = "sha256:513d2b6637b7853806ae79ffaca6f3e8754bdd547048f5ccc1420aec4b714f1e"},
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 description = "Reusable constraint types to use with typing.Annotated"
@@ -1537,18 +1549,6 @@ reference = "master"
 resolved_reference = "9dc1694da9d12e700645b9aceca9aa5e25c4be39"
 
 [[package]]
-name = "future"
-version = "1.0.0"
-description = "Clean single-source support for Python 3 and 2"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-groups = ["main"]
-files = [
-    {file = "future-1.0.0-py3-none-any.whl", hash = "sha256:929292d34f5872e70396626ef385ec22355a1fae8ad29e1a734c3e43f9fbc216"},
-    {file = "future-1.0.0.tar.gz", hash = "sha256:bd2968309307861edae1458a4f8a4f3598c03be43b97521076aebf5d94c07b05"},
-]
-
-[[package]]
 name = "ghp-import"
 version = "2.1.0"
 description = "Copy your docs directly to the gh-pages branch."
@@ -1641,89 +1641,100 @@ files = [
 
 [[package]]
 name = "graphene"
-version = "3.4.3"
+version = "2.1.9"
 description = "GraphQL Framework for Python"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "graphene-3.4.3-py2.py3-none-any.whl", hash = "sha256:820db6289754c181007a150db1f7fff544b94142b556d12e3ebc777a7bf36c71"},
-    {file = "graphene-3.4.3.tar.gz", hash = "sha256:2a3786948ce75fe7e078443d37f609cbe5bb36ad8d6b828740ad3b95ed1a0aaa"},
+    {file = "graphene-2.1.9-py2.py3-none-any.whl", hash = "sha256:3d446eb1237c551052bc31155cf1a3a607053e4f58c9172b83a1b597beaa0868"},
+    {file = "graphene-2.1.9.tar.gz", hash = "sha256:b9f2850e064eebfee9a3ef4a1f8aa0742848d97652173ab44c82cc8a62b9ed93"},
 ]
 
 [package.dependencies]
-graphql-core = ">=3.1,<3.3"
-graphql-relay = ">=3.1,<3.3"
-python-dateutil = ">=2.7.0,<3"
-typing-extensions = ">=4.7.1,<5"
+aniso8601 = ">=3,<=7"
+graphql-core = ">=2.1,<3"
+graphql-relay = ">=2,<3"
+six = ">=1.10.0,<2"
 
 [package.extras]
-dev = ["coveralls (>=3.3,<5)", "mypy (>=1.10,<2)", "pytest (>=8,<9)", "pytest-asyncio (>=0.16,<2)", "pytest-benchmark (>=4,<5)", "pytest-cov (>=5,<6)", "pytest-mock (>=3,<4)", "ruff (==0.5.0)", "types-python-dateutil (>=2.8.1,<3)"]
-test = ["coveralls (>=3.3,<5)", "pytest (>=8,<9)", "pytest-asyncio (>=0.16,<2)", "pytest-benchmark (>=4,<5)", "pytest-cov (>=5,<6)", "pytest-mock (>=3,<4)"]
+django = ["graphene-django"]
+sqlalchemy = ["graphene-sqlalchemy"]
+test = ["coveralls", "fastdiff (==0.2.0)", "iso8601", "mock", "promise", "pytest", "pytest-benchmark", "pytest-cov", "pytest-mock", "pytz", "six", "snapshottest"]
 
 [[package]]
 name = "graphene-django"
-version = "3.2.3"
+version = "2.16.0"
 description = "Graphene Django integration"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "graphene-django-3.2.3.tar.gz", hash = "sha256:d831bfe8e9a6e77e477b7854faef4addb318f386119a69ee4c57b74560f3e07d"},
-    {file = "graphene_django-3.2.3-py2.py3-none-any.whl", hash = "sha256:0c673a4dad315b26b4d18eb379ad0c7027fd6a36d23a1848b7c7c09a14a9271e"},
+    {file = "graphene-django-2.16.0.tar.gz", hash = "sha256:dcf650ebfae52c2e9927d6e8bb005d06366f710b17a015c821c920eda1270566"},
+    {file = "graphene_django-2.16.0-py2.py3-none-any.whl", hash = "sha256:ec89469ec94507c1ed998f85ee087d634ec489e20fe08a72893c3ca5e646fc14"},
 ]
 
 [package.dependencies]
-Django = ">=3.2"
-graphene = ">=3.0,<4"
-graphql-core = ">=3.1.0,<4"
-graphql-relay = ">=3.1.1,<4"
+Django = ">=2.2"
+graphene = ">=2.1.7,<3"
+graphql-core = ">=2.1.0,<3"
 promise = ">=2.1"
+singledispatch = ">=3.4.0.3"
 text-unidecode = "*"
 
 [package.extras]
-dev = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", "mock", "pre-commit", "pytest (>=7.3.1)", "pytest-cov", "pytest-django (>=4.5.2)", "pytest-random-order", "pytz", "ruff (==0.1.2)"]
+dev = ["black (==22.6.0)", "coveralls", "django-filter (>=2)", "djangorestframework (>=3.6.3)", "flake8 (>=5,<6)", "flake8-black (==0.3.3)", "flake8-bugbear (==22.7.1)", "mock", "pytest (>=3.6.3)", "pytest-cov", "pytest-django (>=3.3.2)", "pytz"]
 rest-framework = ["djangorestframework (>=3.6.3)"]
-test = ["coveralls", "django-filter (>=22.1)", "djangorestframework (>=3.6.3)", "mock", "pytest (>=7.3.1)", "pytest-cov", "pytest-django (>=4.5.2)", "pytest-random-order", "pytz"]
+test = ["coveralls", "django-filter (>=2)", "djangorestframework (>=3.6.3)", "mock", "pytest (>=3.6.3)", "pytest-cov", "pytest-django (>=3.3.2)", "pytz"]
 
 [[package]]
 name = "graphene-django-optimizer"
-version = "0.10.0"
+version = "0.8.0"
 description = "Optimize database access inside graphene queries."
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "graphene-django-optimizer-0.10.0.tar.gz", hash = "sha256:5a5d9d1e1abda3571bdff77a71af5e71b994e5e9d97d17a576df89181284075d"},
-    {file = "graphene_django_optimizer-0.10.0-py2.py3-none-any.whl", hash = "sha256:5b81aaa114514c9a89d064aaaf09c8e00c27d1cf6f734993f0ea5afe776041b9"},
+    {file = "graphene-django-optimizer-0.8.0.tar.gz", hash = "sha256:79269880d59d0a35d41751ddcb419220c4ad3871960416371119f447cb2e1a77"},
 ]
 
 [[package]]
 name = "graphql-core"
-version = "3.2.7"
-description = "GraphQL implementation for Python, a port of GraphQL.js, the JavaScript reference implementation for GraphQL."
+version = "2.3.2"
+description = "GraphQL implementation for Python"
 optional = false
-python-versions = "<4,>=3.7"
+python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "graphql_core-3.2.7-py3-none-any.whl", hash = "sha256:17fc8f3ca4a42913d8e24d9ac9f08deddf0a0b2483076575757f6c412ead2ec0"},
-    {file = "graphql_core-3.2.7.tar.gz", hash = "sha256:27b6904bdd3b43f2a0556dad5d579bdfdeab1f38e8e8788e555bdcb586a6f62c"},
-]
-
-[[package]]
-name = "graphql-relay"
-version = "3.2.0"
-description = "Relay library for graphql-core"
-optional = false
-python-versions = ">=3.6,<4"
-groups = ["main"]
-files = [
-    {file = "graphql-relay-3.2.0.tar.gz", hash = "sha256:1ff1c51298356e481a0be009ccdff249832ce53f30559c1338f22a0e0d17250c"},
-    {file = "graphql_relay-3.2.0-py3-none-any.whl", hash = "sha256:c9b22bd28b170ba1fe674c74384a8ff30a76c8e26f88ac3aa1584dd3179953e5"},
+    {file = "graphql-core-2.3.2.tar.gz", hash = "sha256:aac46a9ac524c9855910c14c48fc5d60474def7f99fd10245e76608eba7af746"},
+    {file = "graphql_core-2.3.2-py2.py3-none-any.whl", hash = "sha256:44c9bac4514e5e30c5a595fac8e3c76c1975cae14db215e8174c7fe995825bad"},
 ]
 
 [package.dependencies]
-graphql-core = ">=3.2,<3.3"
+promise = ">=2.3,<3"
+rx = ">=1.6,<2"
+six = ">=1.10.0"
+
+[package.extras]
+gevent = ["gevent (>=1.1)"]
+test = ["coveralls (==1.11.1)", "cython (==0.29.17)", "gevent (==1.5.0)", "pyannotate (==1.2.0)", "pytest (==4.6.10)", "pytest-benchmark (==3.2.3)", "pytest-cov (==2.8.1)", "pytest-django (==3.9.0)", "pytest-mock (==2.0.0)", "six (==1.14.0)"]
+
+[[package]]
+name = "graphql-relay"
+version = "2.0.1"
+description = "Relay implementation for Python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "graphql-relay-2.0.1.tar.gz", hash = "sha256:870b6b5304123a38a0b215a79eace021acce5a466bf40cd39fa18cb8528afabb"},
+    {file = "graphql_relay-2.0.1-py3-none-any.whl", hash = "sha256:ac514cb86db9a43014d7e73511d521137ac12cf0101b2eaa5f0a3da2e10d913d"},
+]
+
+[package.dependencies]
+graphql-core = ">=2.2,<3"
+promise = ">=2.2,<3"
+six = ">=1.12"
 
 [[package]]
 name = "griffe"
@@ -2731,29 +2742,29 @@ typing-extensions = ">=4.3.0"
 
 [[package]]
 name = "nautobot"
-version = "3.0.5"
+version = "2.4.25"
 description = "Source of truth and network automation platform."
 optional = false
-python-versions = "<3.14,>=3.10"
+python-versions = "<3.13,>=3.10"
 groups = ["main"]
 files = [
-    {file = "nautobot-3.0.5-py3-none-any.whl", hash = "sha256:7b25aad146660aaeaaa1fcd924c626d4b509d3a5913caf85f4fc5b7b58021d00"},
-    {file = "nautobot-3.0.5.tar.gz", hash = "sha256:907619ca2dc823c28685d6ce2fbc877158943febf65f652cdc98c70730fa1561"},
+    {file = "nautobot-2.4.25-py3-none-any.whl", hash = "sha256:76754f60b7e5c9e93bccbdab2db868e80051691b1eb2fb2931cd9cd0e7fb5621"},
+    {file = "nautobot-2.4.25.tar.gz", hash = "sha256:2d6aa7ff2b58aa4edab0e51a72a241f7cc842a1d56c79c0174262da617c1d539"},
 ]
 
 [package.dependencies]
-celery = ">=5.6.1,<5.7.0"
+celery = ">=5.6.0,<5.7.0"
 cryptography = ">=46.0.3,<46.1.0"
 Django = ">=4.2.27,<4.3.0"
 django-ajax-tables = ">=1.1.1,<1.2.0"
 django-celery-beat = ">=2.7.0,<2.8.0"
 django-celery-results = ">=2.6.0,<2.7.0"
-django-constance = ">=4.3.4,<4.4.0"
+django-constance = ">=4.3.3,<4.4.0"
 django-cors-headers = ">=4.9.0,<4.10.0"
 django-db-file-storage = ">=0.5.6.1,<0.6.0.0"
 django-extensions = ">=4.1,<4.2"
 django-filter = ">=25.1,<25.2"
-django-health-check = ">=3.20.8,<3.21.0"
+django-health-check = ">=3.20.0,<3.21.0"
 django-jinja = ">=2.11.0,<2.12.0"
 django-prometheus = ">=2.4.1,<2.5.0"
 django-redis = ">=6.0.0,<6.1.0"
@@ -2767,9 +2778,9 @@ django-webserver = ">=1.2.0,<1.3.0"
 djangorestframework = ">=3.16.1,<3.17.0"
 drf-spectacular = {version = ">=0.28.0,<0.29.0", extras = ["sidecar"]}
 emoji = ">=2.15.0,<2.16.0"
-GitPython = ">=3.1.46,<3.2.0"
-graphene-django = ">=3.2.3,<3.3.0"
-graphene-django-optimizer = ">=0.10.0,<0.11.0"
+GitPython = ">=3.1.45,<3.2.0"
+graphene-django = ">=2.16.0,<2.17.0"
+graphene-django-optimizer = ">=0.8.0,<0.9.0"
 Jinja2 = ">=3.1.6,<3.2.0"
 jsonschema = ">=4.7.0,<5.0.0"
 kubernetes = ">=33.1.0,<34.0.0"
@@ -2788,50 +2799,52 @@ social-auth-app-django = ">=5.4.3,<5.5.0"
 svgwrite = ">=1.4.3,<1.5.0"
 
 [package.extras]
-all = ["django-auth-ldap (>=5.2.0,<5.3.0)", "django-storages (>=1.14.6,<1.15.0)", "mysqlclient (>=2.2.7,<2.3.0)", "napalm (>=4.1.0,<6.0.0)", "social-auth-core[saml] (>=4.8.3,<4.9.0)"]
+all = ["django-auth-ldap (>=5.2.0,<5.3.0)", "django-storages (>=1.14.6,<1.15.0)", "mysqlclient (>=2.2.7,<2.3.0)", "napalm (>=4.1.0,<6.0.0)", "social-auth-core[saml] (>=4.8.1,<4.9.0)"]
 ldap = ["django-auth-ldap (>=5.2.0,<5.3.0)"]
 mysql = ["mysqlclient (>=2.2.7,<2.3.0)"]
 napalm = ["napalm (>=4.1.0,<6.0.0)"]
 remote-storage = ["django-storages (>=1.14.6,<1.15.0)"]
-sso = ["social-auth-core[saml] (>=4.8.3,<4.9.0)"]
+sso = ["social-auth-core[saml] (>=4.8.1,<4.9.0)"]
 
 [[package]]
 name = "nautobot-plugin-nornir"
-version = "3.0.0"
+version = "2.3.0"
 description = "Nautobot App that provides a shim layer to simplify using Nornir within other Nautobot Apps and Nautobot Jobs"
 optional = false
-python-versions = "<3.14,>=3.10"
+python-versions = "<3.13,>=3.9.2"
 groups = ["main"]
 files = [
-    {file = "nautobot_plugin_nornir-3.0.0-py3-none-any.whl", hash = "sha256:cc16c4971b66212462f947ab02167b9f1f2d2029ffe4314024b50bc00822020e"},
-    {file = "nautobot_plugin_nornir-3.0.0.tar.gz", hash = "sha256:6fef33ffc69b230f75d28d78e30e5ed8c2a685607736bda2e7208c09943708a1"},
+    {file = "nautobot_plugin_nornir-2.3.0-py3-none-any.whl", hash = "sha256:f3a6e1a2174a5fb81d05cb8d48265d5e217e845526154795bf9ce4807cb9674a"},
+    {file = "nautobot_plugin_nornir-2.3.0.tar.gz", hash = "sha256:58312f5c878a0fb90a86234240fda67bc39bbcb239f1674306a515cf98ac851e"},
 ]
 
 [package.dependencies]
-nautobot = ">=3.0.0,<4.0.0"
-nornir-nautobot = ">=4.0.0,<5.0.0"
+nautobot = ">=2.4.2,<3.0.0"
+netutils = ">=1.6.0"
+nornir-nautobot = ">=3.3.0,<4.0.0"
 
 [[package]]
 name = "nautobot-ssot"
-version = "4.0.0"
+version = "3.11.1"
 description = "Nautobot Single Source of Truth"
 optional = false
-python-versions = "<3.14,>=3.10"
+python-versions = "<3.13,>=3.10"
 groups = ["main"]
 files = [
-    {file = "nautobot_ssot-4.0.0-py3-none-any.whl", hash = "sha256:c95fb048e5f5efbf57e9e02c67fa3054668a31cda329b938213fa22feb5a8cec"},
-    {file = "nautobot_ssot-4.0.0.tar.gz", hash = "sha256:22994878ff027ee343745e2be9cd7eab61f293cfef7fd5ea744e9a787de8753f"},
+    {file = "nautobot_ssot-3.11.1-py3-none-any.whl", hash = "sha256:60cf84c3416a8a0da46f2b2e9ea5b286c24e0d222cc6454e145196b538974c42"},
+    {file = "nautobot_ssot-3.11.1.tar.gz", hash = "sha256:a2f0cc664c5c375ccd99767f80d7be20b46ff575a064db2a3d4ee0bfdcd5526f"},
 ]
 
 [package.dependencies]
 diffsync = ">=2.0.0,<3.0.0"
 Markdown = "!=3.3.5"
-nautobot = ">=3.0.0,<4.0.0"
+nautobot = ">=2.4.20,<3.0.0"
+packaging = ">=21.3"
 prometheus-client = ">=0.17.1"
 
 [package.extras]
 aci = ["PyYAML (>=6)"]
-all = ["Jinja2 (>=2.11.3)", "PyYAML (>=6)", "cloudvision (>=1.9.0,<2.0.0)", "cvprac (>=1.2.2,<2.0.0)", "dnacentersdk (>=2.5.6,<3.0.0)", "dnspython (>=2.1.0,<3.0.0)", "ijson (>=2.5.1)", "ipfabric (>=7.3.1,<8.0.0)", "meraki (>=1.37.2,<1.46.0)", "nautobot-device-lifecycle-mgmt (>=4.0.0,<5.0.0)", "netutils (>=1.9.0,<2.0.0)", "oauthlib (>=3.1.0)", "python-magic (>=0.4.15)", "pytz (>=2019.3)", "requests (>=2.21.0)", "requests-oauthlib (>=1.3.0)", "six (>=1.13.0)", "slurpit-sdk (==0.9.100)", "urllib3 (>=2.2.3)"]
+all = ["Jinja2 (>=2.11.3)", "PyYAML (>=6)", "cloudvision (>=1.9.0,<2.0.0)", "cvprac (>=1.2.2,<2.0.0)", "dnacentersdk (>=2.5.6,<3.0.0)", "dnspython (>=2.1.0,<3.0.0)", "ijson (>=2.5.1)", "ipfabric (>=7.3.1,<8.0.0)", "meraki (>=1.37.2,<1.46.0)", "nautobot-device-lifecycle-mgmt (>=3.0.0)", "netutils (>=1.9.0,<2.0.0)", "oauthlib (>=3.1.0)", "python-magic (>=0.4.15)", "pytz (>=2019.3)", "requests (>=2.21.0)", "requests-oauthlib (>=1.3.0)", "six (>=1.13.0)", "slurpit-sdk (==0.9.107)", "urllib3 (>=2.2.3)"]
 aristacv = ["cloudvision (>=1.9.0,<2.0.0)", "cvprac (>=1.2.2,<2.0.0)"]
 bootstrap = ["pytz (>=2019.3)"]
 citrix-adm = ["netutils (>=1.9.0,<2.0.0)", "requests (>=2.21.0)", "urllib3 (>=2.2.3)"]
@@ -2840,10 +2853,10 @@ dna-center = ["dnacentersdk (>=2.5.6,<3.0.0)", "netutils (>=1.9.0,<2.0.0)"]
 infoblox = ["dnspython (>=2.1.0,<3.0.0)"]
 ipfabric = ["httpx (>=0.23.3)", "ipfabric (>=7.3.1,<8.0.0)", "netutils (>=1.9.0,<2.0.0)"]
 meraki = ["meraki (>=1.37.2,<1.46.0)"]
-nautobot-device-lifecycle-mgmt = ["nautobot-device-lifecycle-mgmt (>=4.0.0,<5.0.0)"]
+nautobot-device-lifecycle-mgmt = ["nautobot-device-lifecycle-mgmt (>=3.0.0)"]
 pysnow = ["ijson (>=2.5.1)", "oauthlib (>=3.1.0)", "python-magic (>=0.4.15)", "pytz (>=2019.3)", "requests (>=2.21.0)", "requests-oauthlib (>=1.3.0)", "six (>=1.13.0)"]
 servicenow = ["Jinja2 (>=2.11.3)", "PyYAML (>=6)", "ijson (>=2.5.1)", "oauthlib (>=3.1.0)", "python-magic (>=0.4.15)", "pytz (>=2019.3)", "requests (>=2.21.0)", "requests-oauthlib (>=1.3.0)", "six (>=1.13.0)"]
-slurpit = ["slurpit-sdk (==0.9.100)"]
+slurpit = ["slurpit-sdk (==0.9.107)"]
 
 [[package]]
 name = "ncclient"
@@ -2985,14 +2998,14 @@ nornir = ">=3,<4"
 
 [[package]]
 name = "nornir-nautobot"
-version = "4.0.0"
+version = "3.5.2"
 description = "Nornir Nautobot"
 optional = false
-python-versions = "<3.14,>=3.10"
+python-versions = "<3.13,>=3.9"
 groups = ["main"]
 files = [
-    {file = "nornir_nautobot-4.0.0-py3-none-any.whl", hash = "sha256:cc542b75a6afde232b2af7eed987504c6abf6cbdcc6e74acee9d8b2a60b40e87"},
-    {file = "nornir_nautobot-4.0.0.tar.gz", hash = "sha256:c90a5999b2278da2a550bc5c4ad436eb2beaf7a36bad36f90539a0e4b0d39031"},
+    {file = "nornir_nautobot-3.5.2-py3-none-any.whl", hash = "sha256:c96810a67f45f5917531ca844a84375d346b13f6821bc2e536a185e4280f459d"},
+    {file = "nornir_nautobot-3.5.2.tar.gz", hash = "sha256:6c41cecd5fe287e62341aa17f7192fa0589730d980b5a233b06206e65d9d18ee"},
 ]
 
 [package.dependencies]
@@ -3005,7 +3018,7 @@ nornir-napalm = ">=0.5.0,<1.0.0"
 nornir-netmiko = ">=1.0.0,<2.0.0"
 nornir-scrapli = ">=2025.1.30,<2026.0.0"
 nornir-utils = ">=0,<1"
-pynautobot = ">=3.0.0,<4.0.0"
+pynautobot = ">=2.4.0,<3.0.0"
 requests = ">=2.30.1,<3.0.0"
 scrapli = ">=2024.01.30"
 
@@ -3072,18 +3085,18 @@ nornir = ">=3,<4"
 
 [[package]]
 name = "ntc-templates"
-version = "7.9.0"
+version = "8.1.0"
 description = "TextFSM Templates for Network Devices, and Python wrapper for TextFSM's CliTable."
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "ntc_templates-7.9.0-py3-none-any.whl", hash = "sha256:44ae2651719592bb70e98886f363b15bab12892b37f8338f0a2255aa5c7b6ee3"},
-    {file = "ntc_templates-7.9.0.tar.gz", hash = "sha256:df4b4520c3dd41b33ad0746ea7742c63b13eb2860579c7648c348167af5432e2"},
+    {file = "ntc_templates-8.1.0-py3-none-any.whl", hash = "sha256:6cea8fdb17e8c72bd7a89bf21a94c184f241ce33c34b074570059d710318acaf"},
+    {file = "ntc_templates-8.1.0.tar.gz", hash = "sha256:e570a5bb4ee829d62bfdce3fb46045a40aaa176b134aa0db21542d6518ca4be7"},
 ]
 
 [package.dependencies]
-textfsm = ">=1.1.0,<2.0.0"
+textfsm = ">=1.1.0"
 
 [[package]]
 name = "oauthlib"
@@ -4071,14 +4084,14 @@ tests = ["hypothesis (>=3.27.0)", "pytest (>=7.4.0)", "pytest-cov (>=2.10.1)", "
 
 [[package]]
 name = "pynautobot"
-version = "3.0.0"
+version = "2.7.2"
 description = "Nautobot API client library"
 optional = false
-python-versions = "<4.0,>=3.10"
+python-versions = "<4.0,>=3.9"
 groups = ["main"]
 files = [
-    {file = "pynautobot-3.0.0-py3-none-any.whl", hash = "sha256:b24c636517dfdbebdc258d283a99af079e0c278e69d705767db3e8455413590f"},
-    {file = "pynautobot-3.0.0.tar.gz", hash = "sha256:cc0b5ccfd9edc4f7fa9777845ce895bf0f6a6e41610a8bc05c2459463351b0b7"},
+    {file = "pynautobot-2.7.2-py3-none-any.whl", hash = "sha256:a3368ac050e207d3882267dbbbc36dc7732f3290283b763ebea7ce6fdb1aba3c"},
+    {file = "pynautobot-2.7.2.tar.gz", hash = "sha256:228a47a55f648e9ac01ff326c7b102f619fa887fa6f07987120b50006d98652c"},
 ]
 
 [package.dependencies]
@@ -4781,6 +4794,17 @@ files = [
 ]
 
 [[package]]
+name = "rx"
+version = "1.6.3"
+description = "Reactive Extensions (Rx) for Python"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "Rx-1.6.3.tar.gz", hash = "sha256:ca71b65d0fc0603a3b5cfaa9e33f5ba81e4aae10a58491133595088d7734b2da"},
+]
+
+[[package]]
 name = "scp"
 version = "0.15.0"
 description = "scp module for paramiko"
@@ -4906,6 +4930,26 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-
 enabler = ["pytest-enabler (>=2.2)"]
 test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21) ; python_version >= \"3.9\" and sys_platform != \"cygwin\"", "jaraco.envs (>=2.2)", "jaraco.path (>=3.7.2)", "jaraco.test (>=5.5)", "packaging (>=24.2)", "pip (>=19.1)", "pyobjc (<12) ; sys_platform == \"darwin\" and python_version <= \"3.9\"", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-home (>=0.5)", "pytest-perf ; sys_platform != \"cygwin\"", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
 type = ["importlib_metadata (>=7.0.2) ; python_version < \"3.10\"", "jaraco.develop (>=7.21) ; sys_platform != \"cygwin\"", "mypy (==1.14.*)", "pytest-mypy"]
+
+[[package]]
+name = "singledispatch"
+version = "4.1.2"
+description = "Backport functools.singledispatch to older Pythons."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "singledispatch-4.1.2-py3-none-any.whl", hash = "sha256:24802c4e743a252645c461e71abcaa95c3f678a96688e72bb0bf63e663018c7a"},
+    {file = "singledispatch-4.1.2.tar.gz", hash = "sha256:0ad18e5a55c54a836a695a4e7c12faa05adfe88c7eeb64dcd331a4b13934c3b6"},
+]
+
+[package.extras]
+check = ["pytest-checkdocs (>=2.4)", "pytest-ruff (>=0.2.1) ; sys_platform != \"cygwin\""]
+cover = ["pytest-cov"]
+doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
+enabler = ["pytest-enabler (>=2.2)"]
+test = ["pytest (>=6,!=8.1.*)"]
+type = ["pytest-mypy"]
 
 [[package]]
 name = "six"
@@ -5068,19 +5112,15 @@ files = [
 
 [[package]]
 name = "textfsm"
-version = "1.1.3"
+version = "2.1.0"
 description = "Python module for parsing semi-structured text into python tables."
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "textfsm-1.1.3-py2.py3-none-any.whl", hash = "sha256:dcbeebc6a6137bed561c71a56344d752e6dbc04ae5ea309252cb70fb97ccc9cd"},
-    {file = "textfsm-1.1.3.tar.gz", hash = "sha256:577ef278a9237f5341ae9b682947cefa4a2c1b24dbe486f94f2c95addc6504b5"},
+    {file = "textfsm-2.1.0-py2.py3-none-any.whl", hash = "sha256:55886490474890fa09ade0e8c9555a913fd325724842293364dc44ea705b3616"},
+    {file = "textfsm-2.1.0.tar.gz", hash = "sha256:45c18ff2b7c90163dfdff7e20d3f482514cc7aac26bc2547744e79dfa761e458"},
 ]
-
-[package.dependencies]
-future = "*"
-six = "*"
 
 [[package]]
 name = "to-json-schema"
@@ -5538,5 +5578,5 @@ all = []
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.10,<3.14"
-content-hash = "eddb56c9a0ca1c14100b13ad191cd94df60a7f884520e395f62818b8dbeeef47"
+python-versions = ">=3.10,<3.13"
+content-hash = "9a97cda5328925d1282159348c6bbd25200323176c39fc1f1d825bf2cdd8d869"
