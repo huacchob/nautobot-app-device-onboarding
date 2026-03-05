@@ -247,5 +247,31 @@ NETWORK_DATA_SCHEMA = {
                 },
             },
         },
+        "power_supplies": {
+            "type": "object",
+            "description": "Power supplies installed in the device",
+            "items": {
+                "type": "object",
+                "required": ["module_type", "manufacturer"],
+                "properties": {
+                    "module_type": {
+                        "type": "string",
+                        "description": "Model/type of the power supply",
+                    },
+                    "manufacturer": {
+                        "type": "string",
+                        "description": "Manufacturer of the power supply",
+                    },
+                    "serial": {
+                        "type": "string",
+                        "description": "Serial number of the power supply",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the power supply",
+                    },
+                },
+            },
+        },
     },
 }
