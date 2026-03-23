@@ -1,0 +1,3 @@
+<group name="cards*">
+{{ slot | WORD }}  {{ card_type | WORD }}  {{ admin_state | WORD }}  {{ oper_state | WORD }}
+</group>
