@@ -1,0 +1,1 @@
+Added Nokia SR-OS (`nokia_sros`) command mapper with support for syncing control cards (CPM) and IOM line cards from `show card` output, and MDA line cards from `show mda` output, into Nautobot module bays via the `sync_network_data` job with modules enabled.

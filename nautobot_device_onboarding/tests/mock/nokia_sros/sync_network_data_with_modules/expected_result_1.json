@@ -1,0 +1,40 @@
+{
+    "modules": {
+        "1": {
+            "description": "iom-ixr-r6",
+            "manufacturer": "Nokia",
+            "module_type": "iom-ixr-r6",
+            "serial": ""
+        },
+        "2": {
+            "description": "iom-ixr-r6",
+            "manufacturer": "Nokia",
+            "module_type": "iom-ixr-r6",
+            "serial": ""
+        },
+        "A": {
+            "description": "cpiom-ixr-r6",
+            "manufacturer": "Nokia",
+            "module_type": "cpiom-ixr-r6",
+            "serial": ""
+        },
+        "B": {
+            "description": "cpiom-ixr-r6",
+            "manufacturer": "Nokia",
+            "module_type": "cpiom-ixr-r6",
+            "serial": ""
+        },
+        "1/1": {
+            "description": "m10-10g-sfp+",
+            "manufacturer": "Nokia",
+            "module_type": "m10-10g-sfp+",
+            "serial": ""
+        },
+        "1/2": {
+            "description": "m10-10g-sfp+",
+            "manufacturer": "Nokia",
+            "module_type": "m10-10g-sfp+",
+            "serial": ""
+        }
+    }
+}

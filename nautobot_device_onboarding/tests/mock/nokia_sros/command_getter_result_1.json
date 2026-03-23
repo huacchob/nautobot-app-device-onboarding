@@ -1,0 +1,35 @@
+{
+    "show card": [
+        {
+            "cards": [
+                {
+                    "admin_state": "up",
+                    "card_type": "iom-ixr-r6",
+                    "oper_state": "up",
+                    "slot": "1"
+                },
+                {
+                    "admin_state": "up",
+                    "card_type": "iom-ixr-r6",
+                    "oper_state": "up",
+                    "slot": "2"
+                },
+                {
+                    "admin_state": "up",
+                    "card_type": "cpiom-ixr-r6",
+                    "oper_state": "up/active",
+                    "slot": "A"
+                },
+                {
+                    "admin_state": "up",
+                    "card_type": "cpiom-ixr-r6",
+                    "oper_state": "up/standby",
+                    "slot": "B"
+                }
+            ]
+        }
+    ],
+    "show mda": {
+        "raw": "===============================================================================\nMDA Summary\n===============================================================================\nSlot  Mda   Provisioned Type                            Admin     Operational\n                Equipped Type (if different)            State     State\n-------------------------------------------------------------------------------\n1     1     m10-10g-sfp+                                up        up\n      2     m10-10g-sfp+                                up        up\n==============================================================================="
+    }
+}
