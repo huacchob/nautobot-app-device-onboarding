@@ -836,3 +836,74 @@ class TestFormatterSyncNetworkDataWithSoftware(unittest.TestCase):
                                 job_debug=False,
                             )
                             self.assertEqual(expected_parsed_result, actual_result)
+
+
+class TestFormatterSyncNetworkDataWithModules(unittest.TestCase):
+    """Tests to ensure formatter is working for sync_network_data with modules enabled."""
+
+    maxDiff = None
+
+    @patch("nautobot_device_onboarding.nornir_plays.transform.GitRepository")
+    def setUp(self, mock_repo):
+        mock_repo.return_value = 0
+        self.platform_parsing_info = add_platform_parsing_info()
+        self.host = Host(
+            name="198.51.100.1",
+            hostname="198.51.100.1",
+            port=22,
+            username="username",
+            password="password",  # nosec
+            platform="",
+            connection_options={
+                "netmiko": ConnectionOptions(
+                    hostname="198.51.100.1",
+                    port=22,
+                    username="username",
+                    password="password",  # nosec
+                    platform="platform",
+                )
+            },
+            defaults=Defaults(data={"sync_vlans": False, "sync_vrfs": False, "sync_modules": True}),
+        )
+
+    def test_perform_data_extraction_simple_host_values(self):
+        for platform in list(self.platform_parsing_info.keys()):
+            self.host.platform = platform
+            with self.subTest(msg=f"Testing host with platform {platform}"):
+                self.assertEqual("198.51.100.1", self.host.name)
+                self.assertFalse(self.host.defaults.data.get("sync_vlans"))
+                self.assertFalse(self.host.defaults.data.get("sync_vrfs"))
+                self.assertTrue(self.host.defaults.data.get("sync_modules"))
+
+    def test_perform_data_extraction_sync_network_data_with_modules(self):
+        supported_platforms = list(self.platform_parsing_info.keys())
+        for sync_only in SYNC_DEVICES_ONLY:
+            supported_platforms.remove(sync_only)
+        for platform in supported_platforms:
+            self.host.platform = platform
+            current_test_dir = f"{MOCK_DIR}/{platform}/"
+            getters = find_files_by_prefix(current_test_dir, "command_getter")
+            # NOTE: Cleanup later, should always require tests to be present
+            if len(getters) > 0:
+                with self.subTest(
+                    msg=f"test_perform_data_extraction_sync_network_data_with_modules with platform {platform}"
+                ):
+                    for command_getter_file in getters:
+                        try:
+                            with pathlib.Path(
+                                f"{MOCK_DIR}/{platform}/sync_network_data_with_modules/expected_result_{command_getter_file.split('_')[-1]}"
+                            ).open("r", encoding="utf-8") as expected_parsed:
+                                expected_parsed_result = json.loads(expected_parsed.read())
+                        except FileNotFoundError:
+                            continue
+                        with pathlib.Path(f"{MOCK_DIR}/{platform}/{command_getter_file}").open(
+                            "r", encoding="utf-8"
+                        ) as command_info:
+                            command_outputs = json.loads(command_info.read())
+                            actual_result = perform_data_extraction(
+                                self.host,
+                                self.platform_parsing_info[platform]["sync_network_data"],
+                                command_outputs,
+                                job_debug=False,
+                            )
+                            self.assertEqual(expected_parsed_result, actual_result)

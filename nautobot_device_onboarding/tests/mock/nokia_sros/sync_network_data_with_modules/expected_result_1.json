@@ -1,39 +1,69 @@
 {
     "modules": {
         "1": {
-            "description": "iom-ixr-r6",
+            "description": "iom-sar",
             "manufacturer": "Nokia",
-            "module_type": "iom-ixr-r6",
-            "serial": ""
-        },
-        "2": {
-            "description": "iom-ixr-r6",
-            "manufacturer": "Nokia",
-            "module_type": "iom-ixr-r6",
+            "module_type": "iom-sar",
             "serial": ""
         },
         "A": {
-            "description": "cpiom-ixr-r6",
+            "description": "csm-10g",
             "manufacturer": "Nokia",
-            "module_type": "cpiom-ixr-r6",
+            "module_type": "csm-10g",
             "serial": ""
         },
         "B": {
-            "description": "cpiom-ixr-r6",
+            "description": "csm-10g",
             "manufacturer": "Nokia",
-            "module_type": "cpiom-ixr-r6",
+            "module_type": "csm-10g",
             "serial": ""
         },
         "1/1": {
-            "description": "m10-10g-sfp+",
+            "description": "a8-1gb-v2-sfp",
             "manufacturer": "Nokia",
-            "module_type": "m10-10g-sfp+",
+            "module_type": "a8-1gb-v2-sfp",
             "serial": ""
         },
         "1/2": {
-            "description": "m10-10g-sfp+",
+            "description": "a8-1gb-v2-sfp",
             "manufacturer": "Nokia",
-            "module_type": "m10-10g-sfp+",
+            "module_type": "a8-1gb-v2-sfp",
+            "serial": ""
+        },
+        "1/3": {
+            "description": "a8-1gb-v2-sfp",
+            "manufacturer": "Nokia",
+            "module_type": "a8-1gb-v2-sfp",
+            "serial": ""
+        },
+        "1/4": {
+            "description": "a8-1gb-v2-sfp",
+            "manufacturer": "Nokia",
+            "module_type": "a8-1gb-v2-sfp",
+            "serial": ""
+        },
+        "1/11": {
+            "description": "a6-em",
+            "manufacturer": "Nokia",
+            "module_type": "a6-em",
+            "serial": ""
+        },
+        "1/12": {
+            "description": "a32-chds1v2",
+            "manufacturer": "Nokia",
+            "module_type": "a32-chds1v2",
+            "serial": ""
+        },
+        "1/X1": {
+            "description": "x-10GigE",
+            "manufacturer": "Nokia",
+            "module_type": "x-10GigE",
+            "serial": ""
+        },
+        "1/X2": {
+            "description": "x-10GigE",
+            "manufacturer": "Nokia",
+            "module_type": "x-10GigE",
             "serial": ""
         }
     }
