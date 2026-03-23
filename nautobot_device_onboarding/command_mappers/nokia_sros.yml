@@ -8,7 +8,7 @@ sync_network_data:
           parser: "raw"
           jpath: "raw"
           iterable_type: "dict"
-          post_processor: "{% set result = {} %}{% set state = {'slot': ''} %}{% for line in obj.split('\n') %}{% set parts = line.split() %}{% if parts | length == 5 and parts[0][0] in '0123456789' %}{{ state.update({'slot': parts[0]}) or '' }}{{ result.update({parts[0] + '/' + parts[1]: parts[2]}) or '' }}{% elif parts | length == 4 and state.slot and parts[0][0] in '0123456789' %}{{ result.update({state.slot + '/' + parts[0]: parts[1]}) or '' }}{% endif %}{% endfor %}{{ result | tojson }}"
+          post_processor: "{% set result = {} %}{% set state = {'slot': ''} %}{% for line in obj.split('\n') %}{% set parts = line.split() %}{% if parts | length == 5 and parts[0][0] in '0123456789' %}{{ state.update({'slot': parts[0]}) or '' }}{{ result.update({parts[0] + '/' + parts[1]: parts[2]}) or '' }}{% elif parts | length == 4 and state.slot and parts[0][0] in '0123456789X' %}{{ result.update({state.slot + '/' + parts[0]: parts[1]}) or '' }}{% endif %}{% endfor %}{{ result | tojson }}"
   modules:
     root_key: true
     commands:
