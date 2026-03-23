@@ -1,6 +1,7 @@
 """Testing the transform helpers."""
 
 import os
+import pathlib
 import tempfile
 import unittest
 from unittest import mock
@@ -40,8 +41,9 @@ class TestTransformNoGitRepo(unittest.TestCase):
             "aruba_os",
             "brocade_fastiron",
             "hp_procurve",
+            "nokia_sros",
         ]
-        self.assertEqual(sorted(default_mappers), list(sorted(command_mappers.keys())))
+        self.assertEqual(sorted(default_mappers), sorted(command_mappers.keys()))
 
     def test_load_command_mappers_from_dir(self):
         command_mappers = load_command_mappers_from_dir(self.yaml_file_dir)
@@ -71,9 +73,11 @@ class TestTransformWithGitRepo(TransactionTestCase):
 
     def populate_repo(self, path, url, *args, **kwargs):
         """Simple helper to populate a mock repo with some data."""
-        os.makedirs(path, exist_ok=True)
-        os.makedirs(os.path.join(path, "onboarding_command_mappers"), exist_ok=True)
-        with open(os.path.join(path, "onboarding_command_mappers", "foo_bar.yml"), "w", encoding="utf-8") as fd:  # pylint:disable=invalid-name
+        pathlib.Path(path).mkdir(exist_ok=True, parents=True)
+        pathlib.Path(os.path.join(path, "onboarding_command_mappers")).mkdir(exist_ok=True, parents=True)
+        with pathlib.Path(os.path.join(path, "onboarding_command_mappers", "foo_bar.yml")).open(
+            "w", encoding="utf-8"
+        ) as fd:  # pylint:disable=invalid-name
             yaml.dump(
                 {
                     "sync_devices": {
@@ -97,27 +101,26 @@ class TestTransformWithGitRepo(TransactionTestCase):
         """
         The test_pull_git_repository_and_refresh_data job should succeed if valid data is present in the repo.
         """
-        with tempfile.TemporaryDirectory() as tempdir:
-            with self.settings(GIT_ROOT=tempdir):
-                MockGitRepo.side_effect = self.populate_repo
-                MockGitRepo.return_value.checkout.return_value = (self.COMMIT_HEXSHA, True)
+        with tempfile.TemporaryDirectory() as tempdir, self.settings(GIT_ROOT=tempdir):
+            MockGitRepo.side_effect = self.populate_repo
+            MockGitRepo.return_value.checkout.return_value = (self.COMMIT_HEXSHA, True)
 
-                # Run the Git operation and refresh the object from the DB
-                job_model = GitRepositorySync().job_model
-                job_result = run_job_for_testing(job=job_model, repository=self.repo.pk)
-                job_result.refresh_from_db()
-                self.assertEqual(
-                    job_result.status,
-                    JobResultStatusChoices.STATUS_SUCCESS,
-                    (job_result.traceback, list(job_result.job_log_entries.values_list("message", flat=True))),
-                )
-                mock_load_command_mappers.side_effect = [
-                    {"foo_bar": {"sync_devices": "serial"}},
-                    {"cisco_ios": {"sync_devices": "serial-2"}},
-                ]
-                expected_dict = {
-                    "foo_bar": {"sync_devices": "serial"},
-                    "cisco_ios": {"sync_devices": "serial-2"},
-                }
-                merged_mappers = add_platform_parsing_info()
-                self.assertEqual(expected_dict, merged_mappers)
+            # Run the Git operation and refresh the object from the DB
+            job_model = GitRepositorySync().job_model
+            job_result = run_job_for_testing(job=job_model, repository=self.repo.pk)
+            job_result.refresh_from_db()
+            self.assertEqual(
+                job_result.status,
+                JobResultStatusChoices.STATUS_SUCCESS,
+                (job_result.traceback, list(job_result.job_log_entries.values_list("message", flat=True))),
+            )
+            mock_load_command_mappers.side_effect = [
+                {"foo_bar": {"sync_devices": "serial"}},
+                {"cisco_ios": {"sync_devices": "serial-2"}},
+            ]
+            expected_dict = {
+                "foo_bar": {"sync_devices": "serial"},
+                "cisco_ios": {"sync_devices": "serial-2"},
+            }
+            merged_mappers = add_platform_parsing_info()
+            self.assertEqual(expected_dict, merged_mappers)

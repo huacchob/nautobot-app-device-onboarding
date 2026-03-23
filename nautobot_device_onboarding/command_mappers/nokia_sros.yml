@@ -1,0 +1,46 @@
+---
+sync_devices: {}
+sync_network_data:
+  pre_processor:
+    mda_map:
+      commands:
+        - command: "show mda"
+          parser: "raw"
+          jpath: "raw"
+          iterable_type: "dict"
+          post_processor: "{% set result = {} %}{% set state = {'slot': ''} %}{% for line in obj.split('\n') %}{% set parts = line.split() %}{% if parts | length == 5 and parts[0][0] in '0123456789' %}{{ state.update({'slot': parts[0]}) or '' }}{{ result.update({parts[0] + '/' + parts[1]: parts[2]}) or '' }}{% elif parts | length == 4 and state.slot and parts[0][0] in '0123456789' %}{{ result.update({state.slot + '/' + parts[0]: parts[1]}) or '' }}{% endif %}{% endfor %}{{ result | tojson }}"
+  modules:
+    root_key: true
+    commands:
+      - command: "show card"
+        parser: "ttp"
+        jpath: "[0].cards[?admin_state=='up' || admin_state=='down']"
+        post_processor: "{% set result={} %}{% for card in obj %}{{ result.update({card.slot: {}}) or '' }}{% endfor %}{% for mda_name in mda_map %}{{ result.update({mda_name: {}}) or '' }}{% endfor %}{{ result | tojson }}"
+  modules__module_type:
+    commands:
+      - command: "show card"
+        parser: "ttp"
+        jpath: "[0].cards[?admin_state=='up' || admin_state=='down']"
+        post_processor: "{%- if '/' in current_key -%}{{ mda_map.get(current_key, '') }}{%- else -%}{%- for card in obj -%}{%- if card.slot == current_key -%}{{ card.card_type }}{%- endif -%}{%- endfor -%}{%- endif -%}"
+        iterable_type: "str"
+  modules__manufacturer:
+    commands:
+      - command: "show card"
+        parser: "ttp"
+        jpath: "[0].cards"
+        post_processor: "{{ 'Nokia' }}"
+        iterable_type: "str"
+  modules__serial:
+    commands:
+      - command: "show card"
+        parser: "ttp"
+        jpath: "[0].cards"
+        post_processor: "{{ '' }}"
+        iterable_type: "str"
+  modules__description:
+    commands:
+      - command: "show card"
+        parser: "ttp"
+        jpath: "[0].cards[?admin_state=='up' || admin_state=='down']"
+        post_processor: "{%- if '/' in current_key -%}{{ mda_map.get(current_key, '') }}{%- else -%}{%- for card in obj -%}{%- if card.slot == current_key -%}{{ card.card_type }}{%- endif -%}{%- endfor -%}{%- endif -%}"
+        iterable_type: "str"
