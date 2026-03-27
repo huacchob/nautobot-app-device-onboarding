@@ -1077,6 +1077,8 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
     def load_module_bay(self):
         """Load module bays into the Diffsync store."""
         for hostname, device_data in self.job.command_getter_result.items():
+            if not hostname:
+                continue
             if self.job.debug:
                 self.job.logger.debug(f"Loading Module Bays from {hostname}")
             if device_data.get("modules") or device_data.get("power_supplies"):
