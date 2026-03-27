@@ -359,6 +359,8 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
     def load_module_bay(self):
         """Load Module Bays into the Diffsync store."""
         for module_bay in ModuleBay.objects.all():
+            if not module_bay.parent_device.name:
+                continue
             network_module_bay = self.module_bay(
                 adapter=self,
                 name=module_bay.name,
