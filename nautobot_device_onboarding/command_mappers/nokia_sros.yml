@@ -1,5 +1,36 @@
 ---
-sync_devices: {}
+sync_devices:
+  hostname:
+    commands:
+      - command: "show system information"
+        parser: "ttp"
+        jpath: "[0].hostname" # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj | upper }}"
+  serial:
+    commands:
+      - command: "show chassis detail"
+        parser: "ttp"
+        jpath: "[0][0].serial || [0].serial" # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj if obj else 'UNKNOWN' }}"
+  device_type:
+    commands:
+      - command: "show system information"
+        parser: "ttp"
+        jpath: "[0].device_type" # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj | upper }}"
+  mgmt_interface:
+    commands:
+      - command: "show router interface system"
+        parser: "ttp"
+        jpath: "[0].router_interfaces[?ip_address=='{{ obj }}'].name || [0].router_interfaces[?ip_address=='10.12.97.10'].name" # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+  mask_length:
+    commands:
+      - command: "show router interface system"
+        parser: "ttp"
+        jpath: "[0].router_interfaces[?ip_address=='{{ obj }}'].cidr || [0].router_interfaces[?ip_address=='10.12.97.10'].cidr"
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "int"
 sync_network_data:
   pre_processor:
     mda_map:
@@ -8,7 +39,68 @@ sync_network_data:
           parser: "raw"
           jpath: "raw"
           iterable_type: "dict"
-          post_processor: "{% set result = {} %}{% set state = {'slot': ''} %}{% for line in obj.split('\n') %}{% set parts = line.split() %}{% if parts | length == 5 and parts[0][0] in '0123456789' %}{{ state.update({'slot': parts[0]}) or '' }}{{ result.update({parts[0] + '/' + parts[1]: parts[2]}) or '' }}{% elif parts | length == 4 and state.slot and parts[0][0] in '0123456789X' %}{{ result.update({state.slot + '/' + parts[0]: parts[1]}) or '' }}{% endif %}{% endfor %}{{ result | tojson }}"
+          post_processor: |
+            {% if obj is string %}
+              {% set source = obj %}
+            {% elif obj is sequence %}
+              {% set source = obj[0] if obj | length > 0 else '' %}
+            {% else %}
+              {% set source = '' %}
+            {% endif %}
+            {% set result = {} %}
+            {% set state = {'slot': ''} %}
+            {% if source %}
+              {% for line in source.split('\n') %}
+                {% set parts = line.split() %}
+                {% if parts | length == 5 and parts[0][0] in '0123456789' %}
+                  {{ state.update({'slot': parts[0]}) or '' }}{{ result.update({parts[0] + '/' + parts[1]: parts[2]}) or '' }}
+                {% elif parts | length == 4 and state.slot and parts[0][0] in '0123456789X' %}
+                  {{ result.update({state.slot + '/' + parts[0]: parts[1]}) or '' }}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {{ result | tojson }}
+  serial:
+    commands:
+      - command: "show chassis detail"
+        parser: "ttp"
+        jpath: "[0][0].serial || [0].serial"
+        post_processor: "{{ obj if obj else 'UNKNOWN' }}"
+        iterable_type: "str"
+  interfaces:
+    root_key: true
+    commands:
+      - command: "show port description"
+        parser: "ttp"
+        jpath: "[0].port_descriptions[?port_id && contains(port_id, '/')].port_id"
+        post_processor: "{% set result={} %}{% for interface in obj %}{{ result.update({interface: {}}) or '' }}{% endfor %}{{ result | tojson }}"
+  interfaces__type:
+    commands:
+      - command: "show port"
+        parser: "ttp"
+        jpath: "[0].port_status[?port_id && contains(port_id, '/') && port_id=='{{ current_key }}'].port_id"
+        post_processor: "{{ 'ethernet' | map_interface_type }}"
+        iterable_type: "str"
+  interfaces__description:
+    commands:
+      - command: "show port description"
+        parser: "ttp"
+        jpath: "[0].port_descriptions[?port_id && contains(port_id, '/') && port_id=='{{ current_key }}'].description"
+        post_processor: "{{ obj[0] if obj else '' }}"
+        iterable_type: "str"
+  interfaces__link_status:
+    commands:
+      - command: "show port"
+        parser: "ttp"
+        jpath: "[0].port_status[?port_id && contains(port_id, '/') && port_id=='{{ current_key }}'].oper_state"
+        post_processor: "{% if obj %}{{ obj[0] | interface_status_to_bool }}{% else %}False{% endif %}"
+  interfaces__mtu:
+    commands:
+      - command: "show port"
+        parser: "ttp"
+        jpath: "[0].port_status[?port_id && contains(port_id, '/') && port_id=='{{ current_key }}']"
+        post_processor: "{% if obj %}{% set entry = obj[0] %}{{ entry.get('cfg_mtu') or entry.get('oper_mtu') or '' }}{% else %}{{ '' }}{% endif %}"
+        iterable_type: "str"
   modules:
     root_key: true
     commands:
