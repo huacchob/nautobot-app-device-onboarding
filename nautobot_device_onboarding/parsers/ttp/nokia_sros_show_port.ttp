@@ -6,6 +6,6 @@
 {{ ignore("Port .*Admin.*Link.*") }}
 {{ ignore("Id.*State.*") }}
 {{ ignore("-+") }}
-{{ port_id | default('') }}         {{ admin_state }}    {{ link_state }}  {{ oper_state }}      {{ cfg_mtu }} {{ oper_mtu }} {{ ignore(".*") }}
-{{ port_id | default('') }}         {{ admin_state }}    {{ link_state }}  {{ oper_state }}
+{{ port_id | default('') }}         {{ admin_state }}    {{ link_state }}  {{ oper_state }}      {{ cfg_mtu | default('') }} {{ oper_mtu | default('') }} {{ ignore(".*") }}
+{{ port_id | default('') }}         {{ admin_state }}    {{ link_state }}  {{ oper_state }}      {{ cfg_mtu | default('') }} {{ oper_mtu | default('') }}
 </group>

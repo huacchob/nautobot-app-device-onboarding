@@ -73,7 +73,7 @@ sync_network_data:
       - command: "show port description"
         parser: "ttp"
         jpath: "[0].port_descriptions[?port_id && contains(port_id, '/')].port_id"
-        post_processor: "{% set result={} %}{% for interface in obj %}{{ result.update({interface: {}}) or '' }}{% endfor %}{{ result | tojson }}"
+        post_processor: "{% set result={} %}{% for interface in obj %}{{ result.update({interface: {'ip_addresses': []}}) or '' }}{% endfor %}{{ result | tojson }}"
   interfaces__type:
     commands:
       - command: "show port"
