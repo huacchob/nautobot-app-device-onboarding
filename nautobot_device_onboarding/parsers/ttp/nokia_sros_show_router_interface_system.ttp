@@ -1,0 +1,13 @@
+<group name="router_interfaces">
+{{ ignore(".*show router interface.*") }}
+{{ ignore("Interface Table \(Router: Base\)") }}
+{{ ignore("=+") }}
+{{ ignore("Interface-Name.*") }}
+{{ ignore(".*PfxState.*") }}
+{{ ignore("-+") }}
+{{ ignore("") }}
+{{ _start_ }}
+{{ name | ORPHRASE }}{{ ignore(".*") }}
+{{ ignore(".*") }}{{ ip_address | IP }}/{{ cidr | DIGIT }}{{ ignore(".*") }}
+{{ _end_ }}
+</group>
