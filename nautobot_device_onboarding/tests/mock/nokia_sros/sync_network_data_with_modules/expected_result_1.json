@@ -1,4 +1,6 @@
 {
+    "serial": "",
+    "interfaces": [],
     "modules": {
         "1": {
             "description": "iom-sar",
