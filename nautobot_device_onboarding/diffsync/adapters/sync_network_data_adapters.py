@@ -516,7 +516,10 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                     if not device.all_interfaces.filter(ip_addresses__in=[ip_address]).exists():
                         device_data = self.job.command_getter_result.get(device.name, {})
                         interface_name = None
-                        for iface_name, iface_data in device_data.get("interfaces", {}).items():
+                        interfaces = device_data.get("interfaces", {})
+                        if not isinstance(interfaces, dict):
+                            interfaces = {}
+                        for iface_name, iface_data in interfaces.items():
                             for ip_data in iface_data.get("ip_addresses", []):
                                 if ip_data.get("ip_address") == ip_address.host:
                                     interface_name = iface_name
@@ -537,11 +540,13 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                                     f"Interface {interface_name} not found on {device.name}, "
                                     "cannot re-assign IP before setting primary IP."
                                 )
+                                continue
                         else:
                             self.job.logger.warning(
                                 f"Could not determine which interface should hold {ip_address} for {device.name}. "
-                                "Primary IP assignment may fail."
+                                "Skipping primary IP assignment."
                             )
+                            continue
                     device.primary_ip4 = ip_address
                     device.validated_save()
                     self.job.logger.info(f"Assigning {ip_address} as primary IP Address for Device: {device.name}")
