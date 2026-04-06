@@ -8,6 +8,6 @@
 {{ ignore("") }}
 {{ _start_ }}
 {{ name | ORPHRASE }}{{ ignore(".*") }}
-{{ ignore(".*") }}{{ ip_address | IP }}/{{ cidr | DIGIT }}{{ ignore(".*") }}
+   {{ ip_address | IP }}/{{ cidr | DIGIT }}{{ ignore(".*") }}
 {{ _end_ }}
 </group>

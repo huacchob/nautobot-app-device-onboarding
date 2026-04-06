@@ -64,7 +64,7 @@ sync_network_data:
       commands:
         - command: "show router interface system"
           parser: "ttp"
-          jpath: "[0].router_interfaces"
+          jpath: "[0].router_interfaces[?ip_address]"
   serial:
     commands:
       - command: "show chassis detail"
@@ -80,8 +80,14 @@ sync_network_data:
         jpath: "[0].port_descriptions[?port_id && contains(port_id, '/')].port_id"
         post_processor: |
           {% set result={} %}{% for interface in obj %}{{ result.update({interface: {'ip_addresses': [], 'mac_address': '', 'lag': '', 'link_status': False, 'description': '', 'type': '', 'mtu': '', '802.1Q_mode': '', 'tagged_vlans': [], 'untagged_vlan': {}}}) or '' }}{% endfor %}
-          {% if router_interfaces %}{% for router_interface in router_interfaces %}{% set ip_address = router_interface.get('ip_address') %}{% set name = router_interface.get('name') %}{% set prefix_length = router_interface.get('cidr') %}{% if ip_address and name %}{{ result.update({name: {'ip_addresses': [{'ip_address': ip_address, 'prefix_length': prefix_length or ''}], 'mac_address': '', 'lag': '', 'link_status': False, 'description': '', 'type': '', 'mtu': '', '802.1Q_mode': '', 'tagged_vlans': [], 'untagged_vlan': {}}}) or '' }}{% endif %}{% endfor %}{% endif %}
+          {% if router_interfaces %}{% for router_interface in router_interfaces %}{% set name = router_interface.get('name') %}{% if name %}{{ result.update({name: {'ip_addresses': [], 'mac_address': '', 'lag': '', 'link_status': False, 'description': '', 'type': '', 'mtu': '', '802.1Q_mode': '', 'tagged_vlans': [], 'untagged_vlan': {}}}) or '' }}{% endif %}{% endfor %}{% endif %}
           {{ result | tojson }}
+  interfaces__ip_addresses:
+    commands:
+      - command: "show router interface system"
+        parser: "ttp"
+        jpath: "[0].router_interfaces[?ip_address && name=='{{ current_key }}']"
+        post_processor: "{% if obj %}{{ [{'ip_address': obj[0].ip_address, 'prefix_length': obj[0].cidr}] | tojson }}{% else %}[]{% endif %}"
   interfaces__type:
     commands:
       - command: "show port"
