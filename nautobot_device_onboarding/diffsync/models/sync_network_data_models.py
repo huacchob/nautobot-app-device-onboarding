@@ -142,6 +142,28 @@ class SyncNetworkDataInterface(FilteredNautobotModel):
     enabled: Optional[bool] = None
     description: Optional[str] = None
 
+    def delete(self) -> Optional["SyncNetworkDataInterface"]:
+        """Delete an interface, but skip deletion if it holds the device's primary IP and the
+        network data returned no interfaces at all (indicating a formatter or parser failure).
+
+        When TTP or the formatter fails to produce any interface data, DiffSync would attempt
+        to delete all Nautobot interfaces including the one holding the primary IP. Skipping
+        the deletion when interfaces are completely absent prevents accidental management
+        connectivity loss while still allowing legitimate interface removals.
+        """
+        try:
+            device = Device.objects.get(name=self.device__name)
+            if device.primary_ip4 and device.all_interfaces.filter(
+                name=self.name, ip_addresses__in=[device.primary_ip4]
+            ).exists():
+                network_data = self.adapter.job.command_getter_result.get(self.device__name, {})
+                network_interfaces = network_data.get("interfaces", {})
+                if not isinstance(network_interfaces, dict) or not network_interfaces:
+                    return None
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
+        return super().delete()
+
 
 class SyncNetworkDataIPAddress(DiffSyncModel):
     """Shared data model representing an IPAddress."""
@@ -212,6 +234,26 @@ class SyncNetworkDataIPAddressToInterface(FilteredNautobotModel):
     interface__name: str
     ip_address__host: str
     ip_address__parent__namespace__name: str
+
+    def delete(self) -> Optional["SyncNetworkDataIPAddressToInterface"]:
+        """Skip deletion if this assignment holds the device's primary IP and the network
+        data returned no interfaces at all (indicating a formatter or parser failure).
+
+        Mirrors the guard in SyncNetworkDataInterface.delete() to prevent the IP assignment
+        from being removed independently when the interface deletion is also skipped.
+        """
+        try:
+            device = Device.objects.get(name=self.interface__device__name)
+            if device.primary_ip4 and device.primary_ip4.host == self.ip_address__host:
+                network_data = self.adapter.job.command_getter_result.get(
+                    self.interface__device__name, {}
+                )
+                network_interfaces = network_data.get("interfaces", {})
+                if not isinstance(network_interfaces, dict) or not network_interfaces:
+                    return None
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
+        return super().delete()
 
     @classmethod
     def _get_queryset(cls, adapter: "Adapter"):
