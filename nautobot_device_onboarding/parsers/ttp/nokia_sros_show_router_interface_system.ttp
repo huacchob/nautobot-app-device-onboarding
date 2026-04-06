@@ -1,10 +1,11 @@
 <group name="router_interfaces">
 {{ ignore(".*show router interface.*") }}
-{{ ignore("Interface Table \(Router: Base\)") }}
+{{ ignore("Interface Table [(]Router: Base[)]") }}
 {{ ignore("=+") }}
 {{ ignore("Interface-Name.*") }}
 {{ ignore(".*PfxState.*") }}
 {{ ignore("-+") }}
+{{ ignore("Interfaces.*") }}
 {{ ignore("") }}
 {{ _start_ }}
 {{ name | ORPHRASE }}{{ ignore(".*") }}
