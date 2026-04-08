@@ -1,5 +1,4 @@
 <group name="port_descriptions" method="table">
-{{ ignore(".*show port description.*") }}
 {{ ignore("Port Descriptions on Slot .*") }}
 {{ ignore("=+") }}
 {{ ignore("Port Id.*") }}
