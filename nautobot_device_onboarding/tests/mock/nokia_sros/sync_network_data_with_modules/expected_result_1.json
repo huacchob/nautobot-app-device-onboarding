@@ -1,66 +1,66 @@
 {
     "modules": {
-        "1": {
+        "Slot 1": {
             "description": "iom-sar",
             "manufacturer": "Nokia",
             "module_type": "iom-sar",
             "serial": ""
         },
-        "A": {
+        "Slot A": {
             "description": "csm-10g",
             "manufacturer": "Nokia",
             "module_type": "csm-10g",
             "serial": ""
         },
-        "B": {
+        "Slot B": {
             "description": "csm-10g",
             "manufacturer": "Nokia",
             "module_type": "csm-10g",
             "serial": ""
         },
-        "1/1": {
+        "MDA 1/1": {
             "description": "a8-1gb-v2-sfp",
             "manufacturer": "Nokia",
             "module_type": "a8-1gb-v2-sfp",
             "serial": ""
         },
-        "1/2": {
+        "MDA 1/2": {
             "description": "a8-1gb-v2-sfp",
             "manufacturer": "Nokia",
             "module_type": "a8-1gb-v2-sfp",
             "serial": ""
         },
-        "1/3": {
+        "MDA 1/3": {
             "description": "a8-1gb-v2-sfp",
             "manufacturer": "Nokia",
             "module_type": "a8-1gb-v2-sfp",
             "serial": ""
         },
-        "1/4": {
+        "MDA 1/4": {
             "description": "a8-1gb-v2-sfp",
             "manufacturer": "Nokia",
             "module_type": "a8-1gb-v2-sfp",
             "serial": ""
         },
-        "1/11": {
+        "MDA 1/11": {
             "description": "a6-em",
             "manufacturer": "Nokia",
             "module_type": "a6-em",
             "serial": ""
         },
-        "1/12": {
+        "MDA 1/12": {
             "description": "a32-chds1v2",
             "manufacturer": "Nokia",
             "module_type": "a32-chds1v2",
             "serial": ""
         },
-        "1/X1": {
+        "MDA 1/X1": {
             "description": "x-10GigE",
             "manufacturer": "Nokia",
             "module_type": "x-10GigE",
             "serial": ""
         },
-        "1/X2": {
+        "MDA 1/X2": {
             "description": "x-10GigE",
             "manufacturer": "Nokia",
             "module_type": "x-10GigE",

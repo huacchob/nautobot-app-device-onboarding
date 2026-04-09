@@ -155,13 +155,13 @@ sync_network_data:
       - command: "show card"
         parser: "ttp"
         jpath: "[0].cards[?admin_state=='up' || admin_state=='down']"
-        post_processor: "{% set result={} %}{% for card in obj %}{{ result.update({card.slot: {}}) or '' }}{% endfor %}{% for mda_name in mda_map %}{{ result.update({mda_name: {}}) or '' }}{% endfor %}{{ result | tojson }}"
+        post_processor: "{% set result={} %}{% for card in obj %}{{ result.update({'Slot ' + card.slot: {}}) or '' }}{% endfor %}{% for mda_name in mda_map %}{{ result.update({'MDA ' + mda_name: {}}) or '' }}{% endfor %}{{ result | tojson }}"
   modules__module_type:
     commands:
       - command: "show card"
         parser: "ttp"
         jpath: "[0].cards[?admin_state=='up' || admin_state=='down']"
-        post_processor: "{%- if '/' in current_key -%}{{ mda_map.get(current_key, '') }}{%- else -%}{%- for card in obj -%}{%- if card.slot == current_key -%}{{ card.card_type }}{%- endif -%}{%- endfor -%}{%- endif -%}"
+        post_processor: "{%- if current_key.startswith('MDA ') -%}{{ mda_map.get(current_key[4:], '') }}{%- else -%}{%- set slot = current_key[5:] -%}{%- for card in obj -%}{%- if card.slot == slot -%}{{ card.card_type }}{%- endif -%}{%- endfor -%}{%- endif -%}"
         iterable_type: "str"
   modules__manufacturer:
     commands:
@@ -182,5 +182,5 @@ sync_network_data:
       - command: "show card"
         parser: "ttp"
         jpath: "[0].cards[?admin_state=='up' || admin_state=='down']"
-        post_processor: "{%- if '/' in current_key -%}{{ mda_map.get(current_key, '') }}{%- else -%}{%- for card in obj -%}{%- if card.slot == current_key -%}{{ card.card_type }}{%- endif -%}{%- endfor -%}{%- endif -%}"
+        post_processor: "{%- if current_key.startswith('MDA ') -%}{{ mda_map.get(current_key[4:], '') }}{%- else -%}{%- set slot = current_key[5:] -%}{%- for card in obj -%}{%- if card.slot == slot -%}{{ card.card_type }}{%- endif -%}{%- endfor -%}{%- endif -%}"
         iterable_type: "str"
