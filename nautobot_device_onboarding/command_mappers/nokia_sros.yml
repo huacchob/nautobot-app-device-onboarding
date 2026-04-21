@@ -106,12 +106,6 @@ sync_network_data:
         jpath: "[0][0].serial || [0].serial"
         post_processor: "{{ obj if obj else 'UNKNOWN' }}"
         iterable_type: "str"
-  software_version:
-    commands:
-      - command: "show version"
-        parser: "ttp"
-        jpath: "[0].version"
-        iterable_type: "str"
   interfaces:
     root_key: true
     commands:
@@ -154,6 +148,12 @@ sync_network_data:
         parser: "ttp"
         jpath: "[0].port_status[?port_id && contains(port_id, '/') && port_id=='{{ current_key }}']"
         post_processor: "{% if obj %}{% set entry = obj[0] %}{{ entry.get('cfg_mtu') or entry.get('oper_mtu') or '' }}{% else %}{{ '' }}{% endif %}"
+        iterable_type: "str"
+  software_version:
+    commands:
+      - command: "show version"
+        parser: "ttp"
+        jpath: "[0].version"
         iterable_type: "str"
   modules:
     root_key: true
