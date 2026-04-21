@@ -26,8 +26,7 @@ app_settings = settings.PLUGINS_CONFIG["nautobot_device_onboarding"]
 
 
 class FilteredNautobotAdapter(NautobotAdapter):
-    """
-    Allow Nautobot data to be filtered by the Job form inputs.
+    """Allow Nautobot data to be filtered by the Job form inputs.
 
     Must be used with FilteredNautobotModel.
     """
@@ -82,8 +81,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
     ]
 
     def _cache_primary_ips(self, device_queryset):
-        """
-        Create a cache of primary ip address for devices.
+        """Create a cache of primary ip address for devices.
 
         If the primary ip address of a device is unset due to the deletion
         of an interface, this cache is used to reset it in sync_complete().
@@ -140,8 +138,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         return ip_address_hosts
 
     def load_vlans(self):
-        """
-        Load Vlans into the Diffsync store.
+        """Load Vlans into the Diffsync store.
 
         Only Vlans that share locations with devices included in the sync should be loaded.
         """
@@ -169,8 +166,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 pass
 
     def load_tagged_vlans_to_interface(self):
-        """
-        Load Tagged VLAN interface assignments into the Diffsync store.
+        """Load Tagged VLAN interface assignments into the Diffsync store.
 
         Only Vlan assignments that were returned by the CommandGetter job should be loaded.
         """
@@ -194,8 +190,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_tagged_vlans_to_interface)
 
     def load_untagged_vlan_to_interface(self):
-        """
-        Load UnTagged VLAN interface assignments into the Diffsync store.
+        """Load UnTagged VLAN interface assignments into the Diffsync store.
 
         Only UnTagged Vlan assignments that were returned by the CommandGetter job should be synced.
         """
@@ -216,8 +211,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_untagged_vlan_to_interface)
 
     def load_lag_to_interface(self):
-        """
-        Load Lag interface assignments into the Diffsync store.
+        """Load Lag interface assignments into the Diffsync store.
 
         Only Lag assignments that were returned by the CommandGetter job should be synced.
         """
@@ -233,8 +227,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_lag_to_interface)
 
     def load_vrfs(self):
-        """
-        Load Vrfs into the Diffsync store.
+        """Load Vrfs into the Diffsync store.
 
         Only Vrfs that were returned by the CommandGetter job should be synced.
         """
@@ -251,8 +244,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 continue
 
     def load_vrf_to_interface(self):
-        """
-        Load Vrf to  interface assignments into the Diffsync store.
+        """Load Vrf to  interface assignments into the Diffsync store.
 
         Only Vrf assignments that were returned by the CommandGetter job should be synced.
         """
@@ -272,8 +264,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self.add(network_vrf_to_interface)
 
     def load_cables(self):
-        """
-        Load Cables into diffsync store.
+        """Load Cables into diffsync store.
 
         Only cables returned by the CommandGetter job should be synced.
         """
@@ -359,7 +350,10 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
     def load_module_bay(self):
         """Load Module Bays into the Diffsync store."""
         for module_bay in ModuleBay.objects.all():
-            if not module_bay.parent_device.name:
+            if not module_bay.name or not module_bay.parent_device or not module_bay.parent_device.name:
+                self.job.logger.warning(
+                    f"Module Bay {module_bay} is missing a name or parent device with a name. Skipping load for this Module Bay."
+                )
                 continue
             network_module_bay = self.module_bay(
                 adapter=self,
@@ -466,8 +460,7 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 self._load_objects(diffsync_model)
 
     def sync_complete(self, source, diff, *args, **kwargs):
-        """
-        Assign the primary ip address to a device and update the management interface setting.
+        """Assign the primary ip address to a device and update the management interface setting.
 
         Syncing interfaces may result in the deletion of the original management interface. If
         this happens, the primary IP Address for the device should be set and the management only
@@ -598,8 +591,7 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
     ]
 
     def _handle_failed_devices(self, device_data):
-        """
-        Handle result data from failed devices.
+        """Handle result data from failed devices.
 
         If a device fails to return expected data, log the result
         and remove it from the data to be loaded into the diffsync store.
