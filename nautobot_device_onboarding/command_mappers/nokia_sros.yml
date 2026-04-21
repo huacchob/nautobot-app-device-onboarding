@@ -106,6 +106,12 @@ sync_network_data:
         jpath: "[0][0].serial || [0].serial"
         post_processor: "{{ obj if obj else 'UNKNOWN' }}"
         iterable_type: "str"
+  software_version:
+    commands:
+      - command: "show version"
+        parser: "ttp"
+        jpath: "[0].version"
+        iterable_type: "str"
   interfaces:
     root_key: true
     commands:
