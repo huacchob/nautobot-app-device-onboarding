@@ -386,9 +386,6 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
         """Load Module Bays into the Diffsync store."""
         for module_bay in ModuleBay.objects.all():
             if not module_bay.name or not module_bay.parent_device or not module_bay.parent_device.name:
-                self.job.logger.warning(
-                    f"Module Bay {module_bay} is missing a name or parent device with a name. Skipping load for this Module Bay."
-                )
                 continue
             network_module_bay = self.module_bay(
                 adapter=self,
