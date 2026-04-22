@@ -31,7 +31,6 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_cables=False,
             sync_software_version=False,
             sync_modules=False,
-            sync_power_supplies=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "jpath": "[*].hostname", "parser": "textfsm"},
@@ -53,7 +52,6 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_cables=False,
             sync_software_version=False,
             sync_modules=False,
-            sync_power_supplies=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "parser": "textfsm", "jpath": "[*].serial[]"},
@@ -89,7 +87,6 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_cables=False,
             sync_software_version=False,
             sync_modules=False,
-            sync_power_supplies=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "parser": "textfsm", "jpath": "[*].serial[]"},
@@ -132,7 +129,6 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_cables=False,
             sync_software_version=False,
             sync_modules=False,
-            sync_power_supplies=False,
         )
         expected_commands_to_run = [
             {"command": "show vlan", "parser": "textfsm", "jpath": "[*].{id: vlan_id, name: vlan_name}"},
@@ -169,7 +165,6 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_cables=False,
             sync_software_version=False,
             sync_modules=False,
-            sync_power_supplies=False,
         )
         expected_commands_to_run = [
             {"command": "show vlan", "parser": "textfsm", "jpath": "[*].{id: vlan_id, name: vlan_name}"},
@@ -212,7 +207,6 @@ class TestGetCommandsToRun(unittest.TestCase):
             sync_cables=True,
             sync_software_version=False,
             sync_modules=False,
-            sync_power_supplies=False,
         )
         expected_commands_to_run = [
             {"command": "show version", "parser": "textfsm", "jpath": "[*].serial[]"},
