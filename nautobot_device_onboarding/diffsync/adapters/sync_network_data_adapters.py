@@ -447,13 +447,13 @@ class SyncNetworkDataNautobotAdapter(FilteredNautobotAdapter):
                 if self.job.sync_software_version:
                     self.load_software_version_to_device()
             elif model_name == "module_bay":
-                if self.job.sync_modules or self.job.sync_power_supplies:
+                if self.job.sync_modules:
                     self.load_module_bay()
             elif model_name == "module_type":
-                if self.job.sync_modules or self.job.sync_power_supplies:
+                if self.job.sync_modules:
                     self.load_module_type()
             elif model_name == "module":
-                if self.job.sync_modules or self.job.sync_power_supplies:
+                if self.job.sync_modules:
                     self.load_module()
             else:
                 diffsync_model = self._get_diffsync_class(model_name)
@@ -1073,10 +1073,8 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         for hostname, device_data in self.job.command_getter_result.items():
             if self.job.debug:
                 self.job.logger.debug(f"Loading Module Bays from {hostname}")
-            if device_data.get("modules") or device_data.get("power_supplies"):
-                bay_names = list(device_data.get("modules", {}).keys()) + list(
-                    device_data.get("power_supplies", {}).keys()
-                )
+            if device_data.get("modules"):
+                bay_names = list(device_data.get("modules", {}).keys())
                 for bay_name in bay_names:
                     try:
                         network_module_bay = self.module_bay(
@@ -1101,10 +1099,8 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         for hostname, device_data in self.job.command_getter_result.items():
             if self.job.debug:
                 self.job.logger.debug(f"Loading Module Types from {hostname}")
-            if device_data.get("modules") or device_data.get("power_supplies"):
-                module_data_list = list(device_data.get("modules", {}).values()) + list(
-                    device_data.get("power_supplies", {}).values()
-                )
+            if device_data.get("modules"):
+                module_data_list = list(device_data.get("modules", {}).values())
                 for module_data in module_data_list:
                     if module_data.get("module_type") and module_data.get("manufacturer"):
                         try:
@@ -1130,10 +1126,8 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
         for hostname, device_data in self.job.command_getter_result.items():
             if self.job.debug:
                 self.job.logger.debug(f"Loading Modules from {hostname}")
-            if device_data.get("modules") or device_data.get("power_supplies"):
-                module_items = list(device_data.get("modules", {}).items()) + list(
-                    device_data.get("power_supplies", {}).items()
-                )
+            if device_data.get("modules"):
+                module_items = list(device_data.get("modules", {}).items())
                 for bay_name, module_data in module_items:
                     if module_data.get("module_type") and module_data.get("manufacturer"):
                         try:
@@ -1178,9 +1172,9 @@ class SyncNetworkDataNetworkAdapter(diffsync.Adapter):
             self.load_software_versions()
         if self.job.sync_software_version:
             self.load_software_version_to_device()
-        if self.job.sync_modules or self.job.sync_power_supplies:
+        if self.job.sync_modules:
             self.load_module_bay()
-        if self.job.sync_modules or self.job.sync_power_supplies:
+        if self.job.sync_modules:
             self.load_module_type()
-        if self.job.sync_modules or self.job.sync_power_supplies:
+        if self.job.sync_modules:
             self.load_module()
