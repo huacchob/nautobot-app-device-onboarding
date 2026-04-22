@@ -139,6 +139,9 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, job_d
             else:
                 loop_commands = field_data["commands"]
             for show_command_dict in loop_commands:
+                # Skip commands that weren't executed (e.g., when sync flags are False)
+                if show_command_dict["command"] not in command_outputs_dict:
+                    continue
                 final_iterable_type = show_command_dict.get("iterable_type")
                 _, current_field_post = extract_and_post_process(
                     command_outputs_dict[show_command_dict["command"]],

@@ -117,8 +117,6 @@ sync_network_mock_data_valid = {
                 "serial": "FJZ23271PFU",
                 "description": "4x1G Uplink Module",
             },
-        },
-        "power_supplies": {
             "Switch 1 Power Supply A": {
                 "module_type": "PWR-C1-350WAC",
                 "manufacturer": "Cisco",

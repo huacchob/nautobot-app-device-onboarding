@@ -640,6 +640,7 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
     )
     sync_cables = BooleanVar(default=False, description="Sync cables between interfaces via a LLDP or CDP.")
     sync_software_version = BooleanVar(default=False, description="Sync software version from device.")
+<<<<<<< HEAD
     update_devices_with_changed_serial = BooleanVar(
         default=False,
         description="If a device at the specified location already exists in Nautobot but the serial number "
@@ -727,7 +728,6 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         sync_software_version,
         update_devices_with_changed_serial,
         sync_modules,
-        sync_power_supplies,
         namespace,
         interface_status,
         ip_address_status,
@@ -749,7 +749,6 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         self.sync_vrf_to_prefix = sync_vrf_to_prefix
         self.sync_cables = sync_cables
         self.sync_modules = sync_modules
-        self.sync_power_supplies = sync_power_supplies
         self.sync_software_version = sync_software_version
         self.update_devices_with_changed_serial = update_devices_with_changed_serial
         self.namespace = namespace
