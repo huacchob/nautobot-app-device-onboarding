@@ -4,8 +4,7 @@ import json
 import os
 import pprint
 import traceback
-from functools import lru_cache
-from typing import Dict, Tuple, Union
+from functools import cache
 
 from django.conf import settings
 from nautobot.dcim.utils import get_all_network_driver_mappings
@@ -77,9 +76,8 @@ def _get_commands_to_run(yaml_parsed_info, sync_vlans, sync_vrfs, sync_cables, s
                     # Means their is any "nested" structures. e.g multiple commands
                     for command in v["commands"]:
                         all_commands.append(command)
-                else:
-                    if isinstance(current_root_key, dict):
-                        all_commands.append(current_root_key)
+                elif isinstance(current_root_key, dict):
+                    all_commands.append(current_root_key)
         else:
             # Deduplicate commands + parser key
             current_root_key = value.get("commands")
@@ -102,30 +100,29 @@ def _get_commands_to_run(yaml_parsed_info, sync_vlans, sync_vrfs, sync_cables, s
                     if not sync_modules and key.startswith("modules"):
                         continue
                     all_commands.append(command)
-            else:
-                if isinstance(current_root_key, dict):
-                    # Means there isn't a "nested" structures. e.g. 1 command
-                    # If syncing vlans isn't in scope don't run the unneeded commands.
-                    if not sync_vlans and key in ["interfaces__tagged_vlans", "interfaces__untagged_vlan"]:
-                        continue
-                    # If syncing vrfs isn't in scope remove the unneeded commands.
-                    if not sync_vrfs and key == "interfaces__vrf":
-                        continue
-                    # If syncing cables isn't in scope remove the unneeded commands.
-                    if not sync_cables and key == "cables":
-                        continue
-                    # If syncing software_versions isn't in scope remove the unneeded commands.
-                    if not sync_software_version and key == "software_version":
-                        continue
-                    # If syncing modules isn't in scope remove the unneeded commands.
-                    if not sync_modules and key.startswith("modules"):
-                        continue
-                    all_commands.append(current_root_key)
+            elif isinstance(current_root_key, dict):
+                # Means there isn't a "nested" structures. e.g. 1 command
+                # If syncing vlans isn't in scope don't run the unneeded commands.
+                if not sync_vlans and key in ["interfaces__tagged_vlans", "interfaces__untagged_vlan"]:
+                    continue
+                # If syncing vrfs isn't in scope remove the unneeded commands.
+                if not sync_vrfs and key == "interfaces__vrf":
+                    continue
+                # If syncing cables isn't in scope remove the unneeded commands.
+                if not sync_cables and key == "cables":
+                    continue
+                # If syncing software_versions isn't in scope remove the unneeded commands.
+                if not sync_software_version and key == "software_version":
+                    continue
+                # If syncing modules isn't in scope remove the unneeded commands.
+                if not sync_modules and key.startswith("modules"):
+                    continue
+                all_commands.append(current_root_key)
     return deduplicate_command_list(all_commands)
 
 
 @close_threaded_db_connections
-def netmiko_send_commands(task: Task, command_getter_yaml_data: Dict, command_getter_job: str, logger, nautobot_job):
+def netmiko_send_commands(task: Task, command_getter_yaml_data: dict, command_getter_job: str, logger, nautobot_job):
     """Run commands specified in PLATFORM_COMMAND_MAP."""
     if not task.host.platform:
         return Result(host=task.host, result=f"{task.host.name} has no platform set.", failed=True)
@@ -135,11 +132,8 @@ def netmiko_send_commands(task: Task, command_getter_yaml_data: Dict, command_ge
         return Result(
             host=task.host, result=f"{task.host.name} has missing definitions in command_mapper YAML file.", failed=True
         )
-    if nautobot_job.connectivity_test:
-        if not tcp_ping(task.host.hostname, task.host.port):
-            return Result(
-                host=task.host, result=f"{task.host.name} failed connectivity check via tcp_ping.", failed=True
-            )
+    if nautobot_job.connectivity_test and not tcp_ping(task.host.hostname, task.host.port or 22):
+        return Result(host=task.host, result=f"{task.host.name} failed connectivity check via tcp_ping.", failed=True)
     task.host.data["platform_parsing_info"] = command_getter_yaml_data[task.host.platform]
     commands = _get_commands_to_run(
         command_getter_yaml_data[task.host.platform][command_getter_job],
@@ -195,7 +189,7 @@ def netmiko_send_commands(task: Task, command_getter_yaml_data: Dict, command_ge
                                 # ourselves. Default for netmiko is if it can't parse to return raw text which is tougher to handle.
                                 parsed_output = parse_output(
                                     platform=get_all_network_driver_mappings()[task.host.platform]["ntc_templates"],
-                                    template_dir=git_template_dir if git_template_dir else None,
+                                    template_dir=git_template_dir or None,
                                     command=command["command"],
                                     data=current_result.result,
                                     try_fallback=bool(git_template_dir),
@@ -279,8 +273,8 @@ def netmiko_send_commands(task: Task, command_getter_yaml_data: Dict, command_ge
             task.results[result_idx].failed = False
 
 
-@lru_cache(maxsize=None)
-def _parse_credentials(secrets_group: Union[SecretsGroup, None], logger: NornirLogger = None) -> Tuple[str, str]:
+@cache
+def _parse_credentials(secrets_group: SecretsGroup | None, logger: NornirLogger = None) -> tuple[str, str]:
     """Parse creds from either secretsgroup or settings, return tuple of username/password."""
     username, password = None, None
     if secrets_group:
@@ -365,7 +359,7 @@ def sync_devices_command_getter(job, log_level):
                 logger.warning(f"Error During Sync Devices Command Getter:<br><br>{err}<br>{traceback_str}")
             else:
                 logger.warning(f"Error During Sync Devices Command Getter: {err}")
-        except:  # noqa: E722, S110
+        except:  # noqa: E722
             logger.warning(f"Error During Sync Devices Command Getter: {err}")
     return compiled_results
 

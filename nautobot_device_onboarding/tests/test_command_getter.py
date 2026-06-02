@@ -1,6 +1,7 @@
 """Test for nornir plays in command_getter."""
 
 import os
+import pathlib
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -8,8 +9,15 @@ import yaml
 from nautobot.apps.testing import TransactionTestCase
 from nautobot.extras.choices import SecretsGroupAccessTypeChoices, SecretsGroupSecretTypeChoices
 from nautobot.extras.models import Secret, SecretsGroup, SecretsGroupAssociation
+from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
+from nornir.core.exceptions import NornirSubTaskError
+from nornir.core.task import Result
 
-from nautobot_device_onboarding.nornir_plays.command_getter import _get_commands_to_run, _parse_credentials
+from nautobot_device_onboarding.nornir_plays.command_getter import (
+    _get_commands_to_run,
+    _parse_credentials,
+    netmiko_send_commands,
+)
 from nautobot_device_onboarding.nornir_plays.logger import NornirLogger
 
 MOCK_DIR = os.path.join("nautobot_device_onboarding", "tests", "mock")
@@ -19,7 +27,9 @@ class TestGetCommandsToRun(unittest.TestCase):
     """Test the ability to get the proper commands to run."""
 
     def setUp(self):
-        with open(f"{MOCK_DIR}/command_mappers/mock_cisco_ios.yml", "r", encoding="utf-8") as mock_file_data:
+        with pathlib.Path(f"{MOCK_DIR}/command_mappers/mock_cisco_ios.yml").open(
+            "r", encoding="utf-8"
+        ) as mock_file_data:
             self.expected_data = yaml.safe_load(mock_file_data)
 
     def test_deduplicate_command_list_sync_devices(self):
@@ -296,3 +306,113 @@ class TestSSHCredParsing(TransactionTestCase):
             "napalm_admin",
             "napalamP$$w0rd",
         )
+
+
+class TestNetmikoSendCommandsEarlyReturns(unittest.TestCase):
+    """Pin the failure messages emitted by `netmiko_send_commands` early-return paths.
+
+    These were silently dropped before `close_threaded_db_connections` was fixed to
+    return the wrapped function's value; without that fix every assertion below sees
+    `None` instead of a `Result`.
+    """
+
+    def test_no_platform_returns_failed_result(self):
+        task = MagicMock()
+        task.host.name = "test-host"
+        task.host.platform = None
+
+        result = netmiko_send_commands(task, {}, "sync_devices", MagicMock(), MagicMock())
+
+        self.assertIsInstance(result, Result)
+        self.assertTrue(result.failed)
+        self.assertEqual(result.result, "test-host has no platform set.")
+
+    def test_unsupported_platform_returns_failed_result(self):
+        task = MagicMock()
+        task.host.name = "test-host"
+        task.host.platform = "made_up_platform"
+
+        result = netmiko_send_commands(task, {}, "sync_devices", MagicMock(), MagicMock())
+
+        self.assertIsInstance(result, Result)
+        self.assertTrue(result.failed)
+        self.assertEqual(result.result, "test-host has a unsupported platform set.")
+
+    def test_missing_yaml_definitions_returns_failed_result(self):
+        # paloalto_panos ships with `sync_devices` but no `sync_network_data` definitions,
+        # so requesting the latter should hit the missing-definitions branch.
+        task = MagicMock()
+        task.host.name = "test-host"
+        task.host.platform = "paloalto_panos"
+        yaml_data = {"paloalto_panos": {"sync_devices": {"hostname": {"commands": []}}}}
+
+        result = netmiko_send_commands(task, yaml_data, "sync_network_data", MagicMock(), MagicMock())
+
+        self.assertIsInstance(result, Result)
+        self.assertTrue(result.failed)
+        self.assertEqual(result.result, "test-host has missing definitions in command_mapper YAML file.")
+
+    @patch("nautobot_device_onboarding.nornir_plays.command_getter.tcp_ping", MagicMock(return_value=False))
+    def test_tcp_ping_failure_returns_failed_result(self):
+        task = MagicMock()
+        task.host.name = "test-host"
+        task.host.hostname = "198.51.100.1"
+        task.host.port = 22
+        task.host.platform = "cisco_ios"
+        nautobot_job = MagicMock()
+        nautobot_job.connectivity_test = True
+        yaml_data = {"cisco_ios": {"sync_devices": {"command": "show version", "parser": "raw"}}}
+
+        result = netmiko_send_commands(task, yaml_data, "sync_devices", MagicMock(), nautobot_job)
+
+        self.assertIsInstance(result, Result)
+        self.assertTrue(result.failed)
+        self.assertEqual(result.result, "test-host failed connectivity check via tcp_ping.")
+
+    @patch(
+        "nautobot_device_onboarding.nornir_plays.command_getter._get_commands_to_run",
+        MagicMock(return_value=[{"command": "show version", "parser": "raw"}]),
+    )
+    def test_netmiko_authentication_exception_returns_failed_result(self):
+        task = MagicMock()
+        task.host.name = "test-host"
+        task.host.platform = "cisco_ios"
+        task.host.data = {}
+        sub_result = MagicMock()
+        sub_result.exception = NetmikoAuthenticationException()
+        task.results = [sub_result]
+        task.run.side_effect = NornirSubTaskError(task=task, result=MagicMock())
+        nautobot_job = MagicMock()
+        nautobot_job.connectivity_test = False
+        nautobot_job.fail_job_on_task_failure = False
+        yaml_data = {"cisco_ios": {"sync_devices": {"command": "show version", "parser": "raw"}}}
+
+        result = netmiko_send_commands(task, yaml_data, "sync_devices", MagicMock(), nautobot_job)
+
+        self.assertIsInstance(result, Result)
+        self.assertTrue(result.failed)
+        self.assertEqual(result.result, "test-host failed authentication.")
+
+    @patch(
+        "nautobot_device_onboarding.nornir_plays.command_getter._get_commands_to_run",
+        MagicMock(return_value=[{"command": "show version", "parser": "raw"}]),
+    )
+    def test_netmiko_timeout_exception_returns_failed_result(self):
+        task = MagicMock()
+        task.host.name = "test-host"
+        task.host.platform = "cisco_ios"
+        task.host.data = {}
+        sub_result = MagicMock()
+        sub_result.exception = NetmikoTimeoutException()
+        task.results = [sub_result]
+        task.run.side_effect = NornirSubTaskError(task=task, result=MagicMock())
+        nautobot_job = MagicMock()
+        nautobot_job.connectivity_test = False
+        nautobot_job.fail_job_on_task_failure = False
+        yaml_data = {"cisco_ios": {"sync_devices": {"command": "show version", "parser": "raw"}}}
+
+        result = netmiko_send_commands(task, yaml_data, "sync_devices", MagicMock(), nautobot_job)
+
+        self.assertIsInstance(result, Result)
+        self.assertTrue(result.failed)
+        self.assertEqual(result.result, "test-host SSH Timeout Occured.")

@@ -92,7 +92,7 @@ class SSOTSyncDevicesTestCase(TransactionTestCase):
             name="cisco_ios", network_driver="cisco_ios", manufacturer=manufacturer
         )
         onboarding_job = jobs.SSOTSyncDevices()
-        with open("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture.csv", "rb") as csv_file:
+        with Path("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture.csv").open("rb") as csv_file:
             processed_csv_data = onboarding_job._process_csv_data(csv_file=csv_file)  # pylint: disable=protected-access
         self.assertEqual(processed_csv_data["10.1.1.10"]["location"], self.testing_objects["location_1"])
         self.assertEqual(processed_csv_data["10.1.1.10"]["namespace"], self.testing_objects["namespace"])
@@ -126,14 +126,16 @@ class SSOTSyncDevicesTestCase(TransactionTestCase):
         manufacturer, _ = Manufacturer.objects.get_or_create(name="Cisco")
         Platform.objects.get_or_create(name="cisco_ios", network_driver="cisco_ios", manufacturer=manufacturer)
         onboarding_job = jobs.SSOTSyncDevices()
-        with open("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture_bad_data.csv", "rb") as csv_file:
+        with Path("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture_bad_data.csv").open(
+            "rb"
+        ) as csv_file:
             processed_csv_data = onboarding_job._process_csv_data(csv_file=csv_file)  # pylint: disable=protected-access
         self.assertEqual(processed_csv_data, None)
 
     def test_process_csv_data__empty_file(self):
         """Test error checking of a bad CSV file used for onboarding jobs."""
         onboarding_job = jobs.SSOTSyncDevices()
-        with open("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture_empty.csv", "rb") as csv_file:
+        with Path("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture_empty.csv").open("rb") as csv_file:
             processed_csv_data = onboarding_job._process_csv_data(csv_file=csv_file)  # pylint: disable=protected-access
         self.assertEqual(processed_csv_data, None)
 
@@ -141,8 +143,7 @@ class SSOTSyncDevicesTestCase(TransactionTestCase):
     @patch.dict("os.environ", {"DEVICE_USER": "test_user", "DEVICE_PASS": "test_password"})
     def test_csv_process_pass_connectivity_test_flag(self, mock_sync_devices_command_getter):
         """Ensure the 'connectivity_test' option is passed to the command_getter when a CSV is in-play."""
-        with open("nautobot_device_onboarding/tests/fixtures/all_required_fields.csv", "rb") as csv_file:
-            csv_contents = csv_file.read()
+        csv_contents = Path("nautobot_device_onboarding/tests/fixtures/all_required_fields.csv").read_bytes()
 
         job_form_inputs = {
             "debug": True,
@@ -183,6 +184,68 @@ class SSOTSyncDevicesTestCase(TransactionTestCase):
         self.assertEqual(job.ip_address_inventory["172.23.0.8"]["secrets_group"], ANY)
         self.assertEqual(job.ip_address_inventory["172.23.0.8"]["platform"], None)
         self.assertEqual(log_level, 10)
+
+    def test_add_content_type_during_csv_sync(self):
+        """Test successful addition of content type to location type during CSV sync."""
+        # Create a location type without Device content type
+        location_type_without_device = self.testing_objects["location_2"].location_type
+        location_type_without_device.content_types.clear()
+        location_type_without_device.validated_save()
+
+        self.assertFalse(location_type_without_device.content_types.filter(app_label="dcim", model="device").exists())
+
+        # Run CSV processing which should add the content type
+        onboarding_job = jobs.SSOTSyncDevices()
+        with Path("nautobot_device_onboarding/tests/fixtures/onboarding_csv_fixture.csv").open("rb") as csv_file:
+            onboarding_job._process_csv_data(csv_file=csv_file)  # pylint: disable=protected-access
+
+        # Verify content type was added
+        location_type_without_device.refresh_from_db()
+        self.assertTrue(location_type_without_device.content_types.filter(app_label="dcim", model="device").exists())
+
+    @patch("nautobot_device_onboarding.diffsync.adapters.sync_devices_adapters.sync_devices_command_getter")
+    def test_add_content_type_during_manual_sync(self, device_data):
+        """Test that content type is added when running manual sync with location."""
+        device_data.return_value = sync_devices_fixture.sync_devices_mock_data_valid
+
+        # Create a location type without Device content type
+        location_type_without_device = self.testing_objects["location_2"].location_type
+        location_type_without_device.content_types.clear()
+        location_type_without_device.validated_save()
+
+        self.assertFalse(location_type_without_device.content_types.filter(app_label="dcim", model="device").exists())
+
+        job_form_inputs = {
+            "debug": True,
+            "connectivity_test": False,
+            "dryrun": False,
+            "csv_file": None,
+            "location": self.testing_objects["location_2"].pk,
+            "namespace": self.testing_objects["namespace"].pk,
+            "ip_addresses": "10.1.1.10,10.1.1.11",
+            "port": 22,
+            "timeout": 30,
+            "set_mgmt_only": True,
+            "update_devices_without_primary_ip": True,
+            "device_role": self.testing_objects["device_role"].pk,
+            "device_status": self.testing_objects["status"].pk,
+            "interface_status": self.testing_objects["status"].pk,
+            "ip_address_status": self.testing_objects["status"].pk,
+            "secrets_group": self.testing_objects["secrets_group"].pk,
+            "platform": None,
+            "memory_profiling": False,
+        }
+        job_result = create_job_result_and_run_job(
+            module="nautobot_device_onboarding.jobs", name="SSOTSyncDevices", **job_form_inputs
+        )
+        self.assertEqual(
+            job_result.status,
+            JobResultStatusChoices.STATUS_SUCCESS,
+            (job_result.traceback, list(job_result.job_log_entries.values_list("message", flat=True))),
+        )
+        # Verify content type was added
+        location_type_without_device.refresh_from_db()
+        self.assertTrue(location_type_without_device.content_types.filter(app_label="dcim", model="device").exists())
 
 
 class SSOTSyncNetworkDataTestCase(TransactionTestCase):
@@ -300,13 +363,13 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
         }
         # This is hacky, theres clearly a bug in the fakenos library
         # https://github.com/fakenos/fakenos/issues/19
-        with patch.object(Host, "_check_if_platform_is_supported"):
-            with FakeNOS(
-                inventory=fake_ios_inventory, plugins=[os.path.join(current_file_path, "fakenos/custom_ios.yaml")]
-            ):
-                job_result = create_job_result_and_run_job(
-                    module="nautobot_device_onboarding.jobs", name="SSOTSyncDevices", **job_form_inputs
-                )
+        with (
+            patch.object(Host, "_check_if_platform_is_supported"),
+            FakeNOS(inventory=fake_ios_inventory, plugins=[os.path.join(current_file_path, "fakenos/custom_ios.yaml")]),
+        ):
+            job_result = create_job_result_and_run_job(
+                module="nautobot_device_onboarding.jobs", name="SSOTSyncDevices", **job_form_inputs
+            )
 
         self.assertEqual(
             job_result.status,
@@ -384,22 +447,24 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
 
         # This is hacky, theres clearly a bug in the fakenos library
         # https://github.com/fakenos/fakenos/issues/19
-        with patch.object(Host, "_check_if_platform_is_supported"):
-            with FakeNOS(
+        with (
+            patch.object(Host, "_check_if_platform_is_supported"),
+            FakeNOS(
                 inventory=fakenos_inventory,
                 plugins=[str(Path(__file__).parent.joinpath("fakenos/nxos.yaml").resolve())],
-            ):
-                create_job_result_and_run_job(
-                    module="nautobot_device_onboarding.jobs",
-                    name="SSOTSyncDevices",
-                    **sync_devices_job_form_inputs,
-                )
-                sync_network_data_job_form_inputs["devices"] = Device.objects.filter(name="fake-nxos-01")
-                create_job_result_and_run_job(
-                    module="nautobot_device_onboarding.jobs",
-                    name="SSOTSyncNetworkData",
-                    **sync_network_data_job_form_inputs,
-                )
+            ),
+        ):
+            create_job_result_and_run_job(
+                module="nautobot_device_onboarding.jobs",
+                name="SSOTSyncDevices",
+                **sync_devices_job_form_inputs,
+            )
+            sync_network_data_job_form_inputs["devices"] = Device.objects.filter(name="fake-nxos-01")
+            create_job_result_and_run_job(
+                module="nautobot_device_onboarding.jobs",
+                name="SSOTSyncNetworkData",
+                **sync_network_data_job_form_inputs,
+            )
 
         device_obj = Device.objects.filter(name="fake-nxos-01").first()
 
@@ -502,22 +567,24 @@ class SSOTSyncNetworkDataTestCase(TransactionTestCase):
 
         # This is hacky, theres clearly a bug in the fakenos library
         # https://github.com/fakenos/fakenos/issues/19
-        with patch.object(Host, "_check_if_platform_is_supported"):
-            with FakeNOS(
+        with (
+            patch.object(Host, "_check_if_platform_is_supported"),
+            FakeNOS(
                 inventory=fakenos_inventory,
                 plugins=[str(Path(__file__).parent.joinpath("fakenos/xe_vrfs.yaml").resolve())],
-            ):
-                create_job_result_and_run_job(
-                    module="nautobot_device_onboarding.jobs",
-                    name="SSOTSyncDevices",
-                    **sync_devices_job_form_inputs,
-                )
-                sync_network_data_job_form_inputs["devices"] = Device.objects.filter(name="fake-xe-01")
-                create_job_result_and_run_job(
-                    module="nautobot_device_onboarding.jobs",
-                    name="SSOTSyncNetworkData",
-                    **sync_network_data_job_form_inputs,
-                )
+            ),
+        ):
+            create_job_result_and_run_job(
+                module="nautobot_device_onboarding.jobs",
+                name="SSOTSyncDevices",
+                **sync_devices_job_form_inputs,
+            )
+            sync_network_data_job_form_inputs["devices"] = Device.objects.filter(name="fake-xe-01")
+            create_job_result_and_run_job(
+                module="nautobot_device_onboarding.jobs",
+                name="SSOTSyncNetworkData",
+                **sync_network_data_job_form_inputs,
+            )
         device_obj = Device.objects.filter(name="fake-xe-01").first()
 
         # GigabitEthernet0/0/0 should have no VRF
