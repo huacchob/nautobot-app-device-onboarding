@@ -1,0 +1,15 @@
+Value PORT_ID (\S+)
+Value ADMIN_STATE (\S+)
+Value LINK_STATE (\S+)
+Value OPER_STATE (\S+)
+Value CFG_MTU (\d+)
+Value OPER_MTU (\d+)
+
+Start
+  ^Ports on Slot
+  ^=+
+  ^Port\s+Admin
+  ^Id\s+State
+  ^-+
+  ^${PORT_ID}\s+${ADMIN_STATE}\s+${LINK_STATE}\s+${OPER_STATE}\s+${CFG_MTU}\s+${OPER_MTU}\b -> Record
+  ^\s*$$

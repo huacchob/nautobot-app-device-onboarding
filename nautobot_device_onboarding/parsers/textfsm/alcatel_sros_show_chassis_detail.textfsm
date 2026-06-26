@@ -1,0 +1,4 @@
+Value SERIAL (\S+)
+
+Start
+  ^\s*Serial number\s+:\s+${SERIAL}\s*$$ -> Record
