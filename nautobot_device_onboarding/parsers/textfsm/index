@@ -1,0 +1,18 @@
+# First line is the header fields for columns and is mandatory.
+# Regular expressions are supported in all fields except the first.
+# Last field supports variable length command completion.
+# abc[[xyz]] is expanded to abc(x(y(z)?)?)?, regexp inside [[]] is not supported
+#
+# Rules of Ordering:
+#  - OS in alphabetical order
+#  - Template name in length order (longest to shortest)
+#  - When Length is the same, use alphabetical order
+#  - Keep space between OS's
+#
+Template, Hostname, Platform, Command
+
+alcatel_sros_show_system_information.textfsm, .*, alcatel_sros, sh[[ow]] sys[[tem]] inf[[ormation]]
+alcatel_sros_show_port_description.textfsm, .*, alcatel_sros, sh[[ow]] po[[rt]] desc[[ription]]
+alcatel_sros_show_chassis_detail.textfsm, .*, alcatel_sros, sh[[ow]] chas[[sis]] det[[ail]]
+alcatel_sros_show_version.textfsm, .*, alcatel_sros, sh[[ow]] ver[[sion]]
+alcatel_sros_show_port.textfsm, .*, alcatel_sros, sh[[ow]] po[[rt]]

@@ -1,0 +1,10 @@
+Value PORT_ID (\S+)
+Value DESCRIPTION (.+?)
+
+Start
+  ^Port Descriptions on Slot
+  ^=+
+  ^Port Id\s+Description
+  ^-+
+  ^${PORT_ID}\s+${DESCRIPTION}\s*$$ -> Record
+  ^\s*$$

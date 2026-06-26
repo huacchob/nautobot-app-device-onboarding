@@ -1,0 +1,6 @@
+Value HOSTNAME (\S+)
+Value DEVICE_TYPE (.+?)
+
+Start
+  ^System Name\s+:\s+${HOSTNAME}\s*$$
+  ^System Type\s+:\s+${DEVICE_TYPE}\s*$$ -> Record
