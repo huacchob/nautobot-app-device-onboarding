@@ -1,1 +1,0 @@
-{{ ignore(".*?") }}hostname: {{ hostname }}{{ ignore(".*?") }}ip-address: {{ ip_address }}{{ ignore(".*?") }}netmask: {{ netmask }}{{ ignore(".*?") }}model: {{ model }}{{ ignore(".*?") }}serial: {{ serial }}{{ ignore(".*?") }}
