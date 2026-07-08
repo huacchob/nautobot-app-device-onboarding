@@ -1,33 +1,176 @@
 ---
 sync_devices:
+  pre_processor:
+    system_info:
+      commands:
+        - command: "show system info"
+          parser: "raw"
+          jpath: "raw"
+          iterable_type: "dict"
+          post_processor: |
+            {% set ns = namespace(result={}) %}
+            {% set tokens = obj.split() %}
+            {% for i in range(tokens | length - 1) %}
+              {% if tokens[i].endswith(':') %}
+                {{ ns.result.update({tokens[i][:-1]: tokens[i + 1]}) or '' }}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result | tojson }}
   hostname:
     commands:
       - command: "show system info"
-        parser: "ttp"
-        jpath: "[*].hostname"
-        post_processor: "{{ obj[0] }}"
+        parser: "raw"
+        jpath: "raw"
+        post_processor: "{{ system_info.get('hostname', '') }}"
   serial:
     commands:
       - command: "show system info"
-        parser: "ttp"
-        jpath: "[*].serial"
-        post_processor: "{{ obj[0] }}"
+        parser: "raw"
+        jpath: "raw"
+        post_processor: "{{ system_info.get('serial', '') }}"
   device_type:
     commands:
       - command: "show system info"
-        parser: "ttp"
-        jpath: "[*].model"
-        post_processor: "{{ obj[0] }}"
-  mgmt_interface:
-    commands:
-      - command: "show interface management | match Name"
         parser: "raw"
         jpath: "raw"
-        post_processor: "{{ obj.split('Name: ')[1] }}"
+        post_processor: "{{ system_info.get('model', '') }}"
+  mgmt_interface:
+    commands:
+      - command: "show system info"
+        parser: "raw"
+        jpath: "raw"
+        post_processor: "{{ 'management' }}"
   mask_length:
     commands:
       - command: "show system info"
-        parser: "ttp"
-        jpath: "[*].netmask"
-        post_processor: "{{ obj[0] | netmask_to_cidr }}"
+        parser: "raw"
+        jpath: "raw"
+        post_processor: "{% set nm = system_info.get('netmask', '') %}{% if nm %}{{ nm | netmask_to_cidr }}{% else %}32{% endif %}"
         iterable_type: "int"
+sync_network_data:
+  pre_processor:
+    system_info:
+      commands:
+        - command: "show system info"
+          parser: "raw"
+          jpath: "raw"
+          iterable_type: "dict"
+          post_processor: |
+            {% set ns = namespace(result={}) %}
+            {% set tokens = obj.split() %}
+            {% for i in range(tokens | length - 1) %}
+              {% if tokens[i].endswith(':') %}
+                {{ ns.result.update({tokens[i][:-1]: tokens[i + 1]}) or '' }}
+              {% endif %}
+            {% endfor %}
+            {{ ns.result | tojson }}
+    lag_map:
+      commands:
+        - command: "show interface all"
+          parser: "ttp"
+          jpath: "[0].aggregate"
+          iterable_type: "dict"
+          post_processor: |
+            {% set result = {} %}
+            {% for group in obj %}
+              {% for member in group.get('members', '').split() %}
+                {{ result.update({member: group.get('lag', '')}) or '' }}
+              {% endfor %}
+            {% endfor %}
+            {{ result | tojson }}
+  serial:
+    commands:
+      - command: "show system info"
+        parser: "raw"
+        jpath: "raw"
+        post_processor: "{{ system_info.get('serial', '') }}"
+  software_version:
+    commands:
+      - command: "show system info"
+        parser: "raw"
+        jpath: "raw"
+        post_processor: |
+          {% set ns = namespace(value='') %}
+          {% set tokens = obj.split() %}
+          {% for i in range(tokens | length - 1) %}
+            {% if tokens[i] == 'sw-version:' %}
+              {% set ns.value = tokens[i + 1] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.value }}
+        iterable_type: "str"
+  interfaces:
+    root_key: true
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        # `[0]` is the parsed dict holding the `hardware` and `logical` groups.
+        jpath: "[0]"
+        post_processor: |
+          {% set src = obj[0] if (obj is iterable and obj is not mapping and obj is not string and obj | length > 0) else obj %}
+          {% set result = {} %}
+          {% set default = {'type': '', 'ip_addresses': [], 'mac_address': '', 'mtu': '', 'description': '', 'link_status': false, '802.1Q_mode': '', 'lag': '', 'untagged_vlan': {}, 'tagged_vlans': []} %}
+          {% for iface in src.get('hardware', []) %}{{ result.update({iface.name: default}) or '' }}{% endfor %}
+          {% for iface in src.get('logical', []) %}{% if iface.name not in result %}{{ result.update({iface.name: default}) or '' }}{% endif %}{% endfor %}
+          {{ result | tojson }}
+  interfaces__type:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].hardware[?name=='{{ current_key }}'].sdsf"
+        post_processor: |
+          {%- set n = current_key -%}
+          {%- if '.' in n -%}virtual
+          {%- elif n.startswith('ae') -%}lag
+          {%- elif n.startswith('loopback') or n.startswith('tunnel') or n.startswith('vlan') -%}virtual
+          {%- elif obj and obj[0] -%}
+          {%- set speed = obj[0].split('/')[0] -%}
+          {%- if speed == '100000' -%}100gbase-x-qsfp28
+          {%- elif speed == '10000' -%}10gbase-t
+          {%- elif speed == '1000' -%}1000base-t
+          {%- else -%}other
+          {%- endif -%}
+          {%- else -%}other
+          {%- endif -%}
+        iterable_type: "str"
+  interfaces__ip_addresses:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].logical[?name=='{{ current_key }}'].address"
+        post_processor: |
+          {% set result = [] %}
+          {% for addr in obj %}
+            {% set parts = addr.split('/') %}
+            {% if parts | length == 2 %}{{ result.append({'ip_address': parts[0], 'prefix_length': parts[1] | int}) or '' }}{% endif %}
+          {% endfor %}
+          {{ result | tojson }}
+        iterable_type: "list"
+  interfaces__mac_address:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].hardware[?name=='{{ current_key }}'].mac_address"
+        post_processor: "{% if obj %}{{ obj[0] }}{% else %}{{ '' }}{% endif %}"
+        iterable_type: "str"
+  interfaces__link_status:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].hardware[?name=='{{ current_key }}'].sdsf"
+        # `tojson` emits lowercase true/false so the formatter normalizes it back to a real boolean.
+        post_processor: "{% if obj and obj[0] %}{{ (obj[0].split('/')[2] | interface_status_to_bool) | tojson }}{% else %}{{ false | tojson }}{% endif %}"
+  interfaces__lag:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].aggregate"
+        post_processor: "{{ lag_map.get(current_key, '') }}"
+        iterable_type: "str"
+  interfaces__vrf:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].routing[?name=='{{ current_key }}'].vrf"
+        post_processor: "{% if obj and obj[0] and 'vr:' in obj[0] %}{{ {'name': obj[0].split('vr:')[1]} | tojson }}{% else %}{{ {} | tojson }}{% endif %}"
+        iterable_type: "dict"
