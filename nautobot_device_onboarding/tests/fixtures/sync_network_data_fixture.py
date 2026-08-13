@@ -124,14 +124,6 @@ sync_network_mock_data_valid = {
                 "description": "350W AC Power Supply",
             },
         },
-        "power_supplies": {
-            "Switch 1 Power Supply A": {
-                "module_type": "PWR-C1-350WAC",
-                "manufacturer": "Cisco",
-                "serial": "ART2150F0BH",
-                "description": "350W AC Power Supply",
-            },
-        },
     },
     "demo-cisco-2": {
         "serial": "9ABUXU5882222",

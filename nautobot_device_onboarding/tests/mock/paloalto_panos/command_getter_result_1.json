@@ -1,14 +1,5 @@
 {
-    "show system info": [
-        {
-            "hostname": "pa-220-2",
-            "ip_address": "10.1.100.73",
-            "model": "PA-220",
-            "netmask": "255.255.255.0",
-            "serial": "012801187338"
-        }
-    ],
-    "show interface management | match Name": {
-        "raw": "\nName: Management Interface"
+    "show system info": {
+        "raw": "hostname: pa-220-2\nip-address: 10.1.100.73\npublic-ip-address: unknown\nnetmask: 255.255.255.0\ndefault-gateway: 10.1.100.1\nis-dhcp: no\nipv6-address: unknown\nipv6-link-local-address: fe80::21b:17ff:fe00:1/64\nmac-address: 00:1b:17:00:00:01\ntime: Wed Feb  5 18:31:00 2025\nuptime: 30 days, 1:20:11\ndevname: pa-220-2\nfamily: 220\nmodel: PA-220\nserial: 012801187338\nsw-version: 10.1.6\napp-version: 8700-8060\nthreat-version: 8700-8060\nplatform-family: 220\noperational-mode: normal\n"
     }
 }

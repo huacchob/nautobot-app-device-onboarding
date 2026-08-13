@@ -112,6 +112,8 @@ sync_network_data:
           {% set default = {'type': '', 'ip_addresses': [], 'mac_address': '', 'mtu': '', 'description': '', 'link_status': false, '802.1Q_mode': '', 'lag': '', 'untagged_vlan': {}, 'tagged_vlans': []} %}
           {% for iface in src.get('hardware', []) %}{{ result.update({iface.name: default}) or '' }}{% endfor %}
           {% for iface in src.get('logical', []) %}{% if iface.name not in result %}{{ result.update({iface.name: default}) or '' }}{% endif %}{% endfor %}
+          {# The management interface is absent from `show interface all`; it comes from `show system info`. #}
+          {% if 'management' not in result %}{{ result.update({'management': default}) or '' }}{% endif %}
           {{ result | tojson }}
   interfaces__type:
     commands:
@@ -120,7 +122,8 @@ sync_network_data:
         jpath: "[0].hardware[?name=='{{ current_key }}'].sdsf"
         post_processor: |
           {%- set n = current_key -%}
-          {%- if '.' in n -%}virtual
+          {%- if n == 'management' -%}1000base-t
+          {%- elif '.' in n -%}virtual
           {%- elif n.startswith('ae') -%}lag
           {%- elif n.startswith('loopback') or n.startswith('tunnel') or n.startswith('vlan') -%}virtual
           {%- elif obj and obj[0] -%}
@@ -140,10 +143,16 @@ sync_network_data:
         jpath: "[0].logical[?name=='{{ current_key }}'].address"
         post_processor: |
           {% set result = [] %}
-          {% for addr in obj %}
-            {% set parts = addr.split('/') %}
-            {% if parts | length == 2 %}{{ result.append({'ip_address': parts[0], 'prefix_length': parts[1] | int}) or '' }}{% endif %}
-          {% endfor %}
+          {% if current_key == 'management' %}
+            {% set mgmt_ip = system_info.get('ip-address', '') %}
+            {% set mgmt_netmask = system_info.get('netmask', '') %}
+            {% if mgmt_ip and mgmt_ip != 'unknown' and mgmt_netmask %}{{ result.append({'ip_address': mgmt_ip, 'prefix_length': mgmt_netmask | netmask_to_cidr | int}) or '' }}{% endif %}
+          {% else %}
+            {% for addr in obj %}
+              {% set parts = addr.split('/') %}
+              {% if parts | length == 2 %}{{ result.append({'ip_address': parts[0], 'prefix_length': parts[1] | int}) or '' }}{% endif %}
+            {% endfor %}
+          {% endif %}
           {{ result | tojson }}
         iterable_type: "list"
   interfaces__mac_address:
@@ -151,7 +160,7 @@ sync_network_data:
       - command: "show interface all"
         parser: "ttp"
         jpath: "[0].hardware[?name=='{{ current_key }}'].mac_address"
-        post_processor: "{% if obj %}{{ obj[0] }}{% else %}{{ '' }}{% endif %}"
+        post_processor: "{% if current_key == 'management' %}{{ system_info.get('mac-address', '') }}{% elif obj %}{{ obj[0] }}{% else %}{{ '' }}{% endif %}"
         iterable_type: "str"
   interfaces__link_status:
     commands:
@@ -159,7 +168,7 @@ sync_network_data:
         parser: "ttp"
         jpath: "[0].hardware[?name=='{{ current_key }}'].sdsf"
         # `tojson` emits lowercase true/false so the formatter normalizes it back to a real boolean.
-        post_processor: "{% if obj and obj[0] %}{{ (obj[0].split('/')[2] | interface_status_to_bool) | tojson }}{% else %}{{ false | tojson }}{% endif %}"
+        post_processor: "{% if current_key == 'management' %}{{ true | tojson }}{% elif obj and obj[0] %}{{ (obj[0].split('/')[2] | interface_status_to_bool) | tojson }}{% else %}{{ false | tojson }}{% endif %}"
   interfaces__lag:
     commands:
       - command: "show interface all"

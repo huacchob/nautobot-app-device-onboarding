@@ -1,0 +1,72 @@
+{
+  "serial": "",
+  "interfaces": [],
+  "modules": {
+    "Slot 1": {
+      "description": "iom-sar",
+      "manufacturer": "Alcatel",
+      "module_type": "iom-sar",
+      "serial": ""
+    },
+    "Slot A": {
+      "description": "csm-10g",
+      "manufacturer": "Alcatel",
+      "module_type": "csm-10g",
+      "serial": ""
+    },
+    "Slot B": {
+      "description": "csm-10g",
+      "manufacturer": "Alcatel",
+      "module_type": "csm-10g",
+      "serial": ""
+    },
+    "MDA 1/1": {
+      "description": "a8-1gb-v2-sfp",
+      "manufacturer": "Alcatel",
+      "module_type": "a8-1gb-v2-sfp",
+      "serial": ""
+    },
+    "MDA 1/2": {
+      "description": "a8-1gb-v2-sfp",
+      "manufacturer": "Alcatel",
+      "module_type": "a8-1gb-v2-sfp",
+      "serial": ""
+    },
+    "MDA 1/3": {
+      "description": "a8-1gb-v2-sfp",
+      "manufacturer": "Alcatel",
+      "module_type": "a8-1gb-v2-sfp",
+      "serial": ""
+    },
+    "MDA 1/4": {
+      "description": "a8-1gb-v2-sfp",
+      "manufacturer": "Alcatel",
+      "module_type": "a8-1gb-v2-sfp",
+      "serial": ""
+    },
+    "MDA 1/11": {
+      "description": "a6-em",
+      "manufacturer": "Alcatel",
+      "module_type": "a6-em",
+      "serial": ""
+    },
+    "MDA 1/12": {
+      "description": "a32-chds1v2",
+      "manufacturer": "Alcatel",
+      "module_type": "a32-chds1v2",
+      "serial": ""
+    },
+    "MDA 1/X1": {
+      "description": "x-10GigE",
+      "manufacturer": "Alcatel",
+      "module_type": "x-10GigE",
+      "serial": ""
+    },
+    "MDA 1/X2": {
+      "description": "x-10GigE",
+      "manufacturer": "Alcatel",
+      "module_type": "x-10GigE",
+      "serial": ""
+    }
+  }
+}

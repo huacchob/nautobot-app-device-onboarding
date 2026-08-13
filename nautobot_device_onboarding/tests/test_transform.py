@@ -42,6 +42,7 @@ class TestTransformNoGitRepo(unittest.TestCase):
             "brocade_fastiron",
             "hp_procurve",
             "nokia_sros",
+            "alcatel_sros",
         ]
         self.assertEqual(sorted(default_mappers), sorted(command_mappers.keys()))
 

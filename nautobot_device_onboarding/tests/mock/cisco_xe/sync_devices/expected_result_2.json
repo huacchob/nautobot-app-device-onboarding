@@ -3,7 +3,5 @@
     "hostname": "2960-01",
     "mask_length": 27,
     "mgmt_interface": "Vlan955",
-    "serial": "FJC2304W0BB",
-    "virtual_chassis": [],
-    "modules": []
+    "serial": "FJC2304W0BB"
 }

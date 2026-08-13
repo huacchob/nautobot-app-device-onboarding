@@ -447,6 +447,7 @@ class TestFormatterSyncDevices(unittest.TestCase):
             "brocade_fastiron",
             "hp_procurve",
             "nokia_sros",
+            "alcatel_sros",
         ]
         self.assertEqual(sorted(default_mappers), sorted(self.platform_parsing_info.keys()))
 

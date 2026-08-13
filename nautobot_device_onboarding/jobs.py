@@ -647,8 +647,10 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         "hardware swap), include this device in the sync anyway. Without this flag the device is excluded "
         "from `devices_to_load` because the queryset filter requires both name and serial to match.",
     )
-    sync_modules = BooleanVar(default=False, description="Sync modules from device.")
-    sync_power_supplies = BooleanVar(default=False, description="Sync power supplies from device.")
+    sync_modules = BooleanVar(
+        default=False,
+        description="Sync modules from device, including linecards, supervisor modules, fan trays, and power supplies.",
+    )
     namespace = ObjectVar(
         model=Namespace,
         required=True,
@@ -727,7 +729,6 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         sync_software_version,
         update_devices_with_changed_serial,
         sync_modules,
-        sync_power_supplies,
         namespace,
         interface_status,
         ip_address_status,
@@ -749,7 +750,6 @@ class SSOTSyncNetworkData(DataSource):  # pylint: disable=too-many-instance-attr
         self.sync_vrf_to_prefix = sync_vrf_to_prefix
         self.sync_cables = sync_cables
         self.sync_modules = sync_modules
-        self.sync_power_supplies = sync_power_supplies
         self.sync_software_version = sync_software_version
         self.update_devices_with_changed_serial = update_devices_with_changed_serial
         self.namespace = namespace

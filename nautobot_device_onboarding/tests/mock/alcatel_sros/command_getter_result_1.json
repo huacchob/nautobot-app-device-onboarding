@@ -1,0 +1,33 @@
+{
+  "show card": [
+    {
+      "cards": [
+        {
+          "admin_state": "up",
+          "card_type": "iom-sar",
+          "oper_state": "up",
+          "slot": "1"
+        },
+        {
+          "admin_state": "up",
+          "card_type": "csm-10g",
+          "oper_state": "up",
+          "slot": "A"
+        },
+        {
+          "admin_state": "up",
+          "card_type": "csm-10g",
+          "oper_state": "up",
+          "slot": "B"
+        }
+      ]
+    }
+  ],
+  "show mda": {
+    "raw": "===============================================================================\nMDA Summary\n===============================================================================\nSlot  Mda   Provisioned Type                            Admin     Operational\n                Equipped Type (if different)            State     State\n-------------------------------------------------------------------------------\n1     1     a8-1gb-v2-sfp                               up        up\n      2     a8-1gb-v2-sfp                               up        up\n      3     a8-1gb-v2-sfp                               up        up\n      4     a8-1gb-v2-sfp                               up        up\n      11    a6-em                                       up        up\n      12    a32-chds1v2                                 up        up\n      X1    x-10GigE                                    up        up\n      X2    x-10GigE                                    up        up\n==============================================================================="
+  },
+  "show chassis detail": [],
+  "show router interface system": [],
+  "show port description": [],
+  "show port": []
+}

@@ -223,7 +223,7 @@ NETWORK_DATA_SCHEMA = {
         },
         "modules": {
             "type": "object",
-            "description": "Modules/line cards installed in the device",
+            "description": "Modules installed in the device (line cards, supervisors, fan trays, power supplies)",
             "items": {
                 "type": "object",
                 "required": ["module_type", "manufacturer"],
@@ -243,32 +243,6 @@ NETWORK_DATA_SCHEMA = {
                     "description": {
                         "type": "string",
                         "description": "Description of the module",
-                    },
-                },
-            },
-        },
-        "power_supplies": {
-            "type": "object",
-            "description": "Power supplies installed in the device",
-            "items": {
-                "type": "object",
-                "required": ["module_type", "manufacturer"],
-                "properties": {
-                    "module_type": {
-                        "type": "string",
-                        "description": "Model/type of the power supply",
-                    },
-                    "manufacturer": {
-                        "type": "string",
-                        "description": "Manufacturer of the power supply",
-                    },
-                    "serial": {
-                        "type": "string",
-                        "description": "Serial number of the power supply",
-                    },
-                    "description": {
-                        "type": "string",
-                        "description": "Description of the power supply",
                     },
                 },
             },

@@ -128,6 +128,7 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, job_d
     sync_vrfs = host.defaults.data.get("sync_vrfs", False)
     sync_cables = host.defaults.data.get("sync_cables", False)
     sync_software_version = host.defaults.data.get("sync_software_version", False)
+    sync_modules = host.defaults.data.get("sync_modules", False)
     get_context_from_pre_processor = {}
     if command_info_dict.get("pre_processor"):
         for pre_processor_name, field_data in command_info_dict["pre_processor"].items():
@@ -160,6 +161,9 @@ def perform_data_extraction(host, command_info_dict, command_outputs_dict, job_d
         if not sync_cables and ssot_field == "cables":
             continue
         if not sync_software_version and ssot_field == "software_version":
+            continue
+        # If syncing modules isn't in scope remove the unneeded commands.
+        if not sync_modules and ssot_field.startswith("modules"):
             continue
         if ssot_field == "pre_processor":
             continue

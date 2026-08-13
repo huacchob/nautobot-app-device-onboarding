@@ -2,6 +2,6 @@
     "device_type": "PA-220",
     "hostname": "pa-220-2",
     "mask_length": 24,
-    "mgmt_interface": "Management Interface",
+    "mgmt_interface": "management",
     "serial": "012801187338"
 }
