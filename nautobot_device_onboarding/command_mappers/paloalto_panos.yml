@@ -136,6 +136,13 @@ sync_network_data:
           {%- else -%}other
           {%- endif -%}
         iterable_type: "str"
+  interfaces__description:
+    commands:
+      - command: "show interface all"
+        parser: "ttp"
+        jpath: "[0].logical[?name=='{{ current_key }}'].zone"
+        post_processor: "{% if current_key == 'management' %}{{ '' }}{% elif obj and obj[0] %}{{ obj[0] }}{% else %}{{ '' }}{% endif %}"
+        iterable_type: "str"
   interfaces__ip_addresses:
     commands:
       - command: "show interface all"
@@ -150,7 +157,7 @@ sync_network_data:
           {% else %}
             {% for addr in obj %}
               {% set parts = addr.split('/') %}
-              {% if parts | length == 2 %}{{ result.append({'ip_address': parts[0], 'prefix_length': parts[1] | int}) or '' }}{% endif %}
+              {% if addr != 'N/A' and parts | length == 2 %}{{ result.append({'ip_address': parts[0], 'prefix_length': parts[1] | int}) or '' }}{% endif %}
             {% endfor %}
           {% endif %}
           {{ result | tojson }}
