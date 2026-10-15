@@ -1,0 +1,104 @@
+---
+sync_devices:
+  hostname:
+    commands:
+      - command: "get system status"
+        parser: "ttp"
+        jpath: "[0].[hostname]"  # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "str"
+  serial:
+    commands:
+      - command: "get system status"
+        parser: "ttp"
+        jpath: "[0].[serial]"  # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "str"
+  device_type:
+    commands:
+      - command: "get system status"
+        parser: "ttp"
+        jpath: "[0].[device_type]"  # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "str"
+  mgmt_interface:
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].addresses[?ip_address=='{{ obj }}'].interface"  # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "str"
+  mask_length:
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].addresses[?ip_address=='{{ obj }}'].netmask"
+        post_processor: "{{ obj[0] | netmask_to_cidr }}"
+        iterable_type: "int"
+
+sync_network_data:
+  serial:
+    commands:
+      - command: "get system status"
+        parser: "ttp"
+        jpath: "[0].[serial]"  # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "str"
+  software_version:
+    commands:
+      - command: "get system status"
+        parser: "ttp"
+        jpath: "[0].[software_version]"  # yamllint disable-line rule:quoted-strings
+        post_processor: "{{ obj[0] }}"
+        iterable_type: "str"
+  interfaces:
+    root_key: true
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].interfaces[*].interface"
+        post_processor: |
+          {% set result = {} %}
+          {% set default = {'type': '', 'ip_addresses': [], 'mac_address': '', 'mtu': '', 'description': '', 'link_status': false, '802.1Q_mode': '', 'lag': '', 'untagged_vlan': {}, 'tagged_vlans': []} %}
+          {% for name in obj %}{{ result.update({name: default}) or '' }}{% endfor %}
+          {{ result | tojson }}
+        iterable_type: "dict"
+  interfaces__type:
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].interfaces[?interface=='{{ current_key }}'].type"
+        post_processor: |
+          {%- set fortinet_type = obj[0] if obj else '' -%}
+          {%- if fortinet_type == 'physical' -%}1000base-t
+          {%- elif fortinet_type in ['aggregate', 'redundant'] -%}lag
+          {%- elif fortinet_type in ['loopback', 'tunnel', 'vlan', 'switch', 'hard-switch', 'vap-switch', 'emac-vlan', 'vxlan', 'geneve'] -%}virtual
+          {%- else -%}other
+          {%- endif -%}
+        iterable_type: "str"
+  interfaces__ip_addresses:
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].addresses[?interface=='{{ current_key }}']"
+        post_processor: |
+          {% set result = [] %}
+          {% for addr in obj %}
+            {% if addr.ip_address != '0.0.0.0' %}{{ result.append({'ip_address': addr.ip_address, 'prefix_length': addr.netmask | netmask_to_cidr | int}) or '' }}{% endif %}
+          {% endfor %}
+          {{ result | tojson }}
+        iterable_type: "list"
+  interfaces__link_status:
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].interfaces[?interface=='{{ current_key }}'].status"
+        # `tojson` emits lowercase true/false so the formatter normalizes it back to a real boolean.
+        post_processor: "{% if obj and obj[0] %}{{ (obj[0] | interface_status_to_bool) | tojson }}{% else %}{{ false | tojson }}{% endif %}"
+  interfaces__lag:
+    commands:
+      - command: "get system interface"
+        parser: "ttp"
+        jpath: "[0].aggregates[?interface=='{{ current_key }}'].lag"
+        post_processor: "{{ obj[0] if obj else '' }}"
+        iterable_type: "str"

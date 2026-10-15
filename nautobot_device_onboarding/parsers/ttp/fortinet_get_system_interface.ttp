@@ -1,0 +1,11 @@
+<group name="interfaces*">
+name: {{ interface }} {{ ignore(".*") }} status: {{ status }} {{ ignore(".*") }} type: {{ type }}{{ ignore(".*") }}
+</group>
+
+<group name="addresses*">
+name: {{ interface }} {{ ignore(".*") }}ip: {{ ip_address }} {{ netmask }} {{ ignore(".*") }}
+</group>
+
+<group name="aggregates*">
+name: {{ interface }} {{ ignore(".*") }}aggregate: {{ lag }}
+</group>

@@ -1,0 +1,3 @@
+Version: {{ device_type }} v{{ software_version | re("[0-9.]+") }},{{ ignore(".*") }}
+Serial-Number: {{ serial }}
+Hostname: {{ hostname }}
